@@ -19,6 +19,8 @@ Entorno `sistema-de-gestion-y-pqrs`, web y backend publicados mediante Firebase 
 
 Capturas locales: `artifacts/login-desktop.png`, `artifacts/login-mobile.png`, `artifacts/dashboard-qa.png`. Se excluyen de Git junto con logs y artefactos de compilación.
 
-El workflow GitHub incluye una compilación iOS sin firma en macOS. Su estado se consulta en Actions; una compilación sin firma no es un IPA instalable ni una publicación en TestFlight.
+El [workflow GitHub](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36248668931) incluye una compilación iOS sin firma en macOS. Su estado se consulta en Actions; una compilación sin firma no es un IPA instalable ni una publicación en TestFlight.
+
+La entrega web final excluye el SDK cliente de Firestore, que no se utiliza: las operaciones de datos pasan por Cloud Functions. Se recompiló web y Android y se repitió la verificación contra QA, incluido acceso autenticado, altas, consultas y dashboard. Las reglas Firestore y el backend permanecen activos.
 
 El documento [PROGRESS](PROGRESS.md) enumera las partes pendientes del alcance ampliado. Los resultados anteriores no equivalen a certificación de producción ni al cierre de todas las fases solicitadas.

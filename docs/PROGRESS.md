@@ -25,7 +25,7 @@ Fecha: 26 de septiembre de 2026. Plataforma Flutter web, Android e iOS. Este doc
 6. **Administración:** búsqueda remota en selectores de más de 100 empresas/proyectos; editor visual de membresías existentes y visor de auditoría/historial. Para más de 30 proyectos específicos usar membresía de empresa o ampliar el modelo.
 7. **Correo y push:** centro de notificaciones persistente operativo; correos salientes y push pendientes de proveedor. No se envía correo ni se afirma que fue enviado.
 8. **Privacidad y operación productiva:** retención automatizada, política de backups con prueba de restauración, monitoreo, App Check, cuarentena/antivirus de adjuntos y revisión de seguridad independiente.
-9. **Distribución móvil:** APK Android QA compilado; firma de distribución propia pendiente. iOS preparado en código, configuración Firebase y callback Google, sin compilación/validación en Xcode ni publicación en App Store/TestFlight desde este Windows.
+9. **Distribución móvil:** APK Android QA compilado; firma de distribución propia pendiente. iOS preparado en código, configuración Firebase y callback Google; compilación sin firma en ejecución remota en macOS mediante GitHub Actions. Firma Apple, prueba en dispositivo y publicación en App Store/TestFlight pendientes.
 Las invitaciones del propietario también admiten cuentas nuevas comerciales, técnicas y lectoras; nunca permiten reclamar el rol propietario. Las cuentas existentes conservan su rol hasta que el propietario lo modifique explícitamente.
 
 Siguiente incremento recomendado: gestor documental y editor de revisiones de catálogo, seguido por políticas SLA avanzadas y reportes.
@@ -39,6 +39,6 @@ Siguiente incremento recomendado: gestor documental y editor de revisiones de ca
 - Web release: compilada.
 - Android debug QA: APK compilado.
 - QA desplegado: autenticación, altas mínimas, consultas, búsqueda e indicadores verificados contra Firebase real con una cuenta comercial temporal; datos y cuenta eliminados al finalizar. La auditoría conserva el registro de verificación.
-- iOS: no compilado por falta de macOS/Xcode en este entorno.
+- iOS: comprobación remota sin firma en curso; consultar [GitHub Actions](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36248668931). No se afirma todavía que la compilación haya aprobado.
 
 Consultar README para comandos y los resultados finales de despliegue. Los fixtures y pruebas usan datos ficticios en emuladores y no se cargan automáticamente en QA.
