@@ -33,6 +33,7 @@ class _ImportsPageState extends State<ImportsPage> {
   }
 
   Future<void> inspect({bool local = false}) async {
+    if (busy) return;
     final s = widget.session;
     if (s.companyId == null || s.projectId == null) {
       toast(

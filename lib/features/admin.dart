@@ -36,6 +36,7 @@ class _AccessPageState extends State<AccessPage> {
   }
 
   Future<void> invite() async {
+    if (busy) return;
     if (company == null ||
         !email.text.contains('@') ||
         (!allProjects && selected.isEmpty)) {
@@ -87,6 +88,7 @@ class _AccessPageState extends State<AccessPage> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     initialValue: role,
+                    isExpanded: true,
                     decoration: const InputDecoration(labelText: 'Rol'),
                     items:
                         [
@@ -181,7 +183,9 @@ class _AccessPageState extends State<AccessPage> {
     if (result != null) {
       try {
         await Api.call('access', result);
-        setState(() => future = Api.list('users'));
+        setState(() {
+          future = Api.list('users');
+        });
       } catch (e) {
         if (mounted) toast(context, readableError(e), error: true);
       }
@@ -209,6 +213,7 @@ class _AccessPageState extends State<AccessPage> {
               const SizedBox(height: 20),
               DropdownButtonFormField<String>(
                 initialValue: inviteRole,
+                isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Rol de la cuenta nueva',
                 ),
@@ -251,7 +256,7 @@ class _AccessPageState extends State<AccessPage> {
                       'companyId': v,
                       'limit': 100,
                     });
-                    if (mounted) {
+                    if (mounted && company == v) {
                       setState(() => projects = jsonList(r['items']));
                     }
                   } catch (e) {
@@ -336,7 +341,9 @@ class _AccessPageState extends State<AccessPage> {
               if (s.hasError) {
                 return ErrorPanel(
                   s.error!,
-                  retry: () => setState(() => future = Api.list('users')),
+                  retry: () => setState(() {
+                    future = Api.list('users');
+                  }),
                 );
               }
               if (!s.hasData) {
@@ -400,12 +407,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
     load();
   }
 
-  void load() => setState(
-    () => future = Api.list('notifications', {
+  void load() => setState(() {
+    future = Api.list('notifications', {
       'limit': 50,
       if (cursor != null) 'cursor': cursor,
-    }),
-  );
+    });
+  });
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -31,6 +31,7 @@ async function main(){
   await page.getByText(/^Solicitudes abiertas\s+1/).waitFor({timeout:45000});
   if(errors.length)throw Error('Browser exception: '+errors[0]);
   fs.mkdirSync('artifacts',{recursive:true});await page.screenshot({path:'artifacts/dashboard-qa.png',fullPage:true});console.log('QA authenticated browser dashboard: OK');
+  if(process.env.QA_CRAWL==='true') await require('./qa-navigation.cjs')(page);
 }
 main().catch(async e=>{console.error(e.message);if(page){await page.screenshot({path:'artifacts/qa-failure.png',fullPage:true});console.log((await page.locator('body').innerText()).slice(0,2500));}process.exitCode=1;}).finally(async()=>{
   if(browser)await browser.close();

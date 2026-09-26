@@ -99,4 +99,63 @@ describe.skipIf(!process.env.FUNCTIONS_EMULATOR)('real callable workflows on Fir
     expect((await db.doc('users/flow-new-staff').get()).get('role')).toBe('commercial');
     await expect(call({action:'acceptInvitation',data:{token:inv.token}})).rejects.toThrow();
   });
+  it('concurrent ticket creation produces unique consecutive numbers and complete events',async()=>{
+    const results=await Promise.all(Array.from({length:12},(_,n)=>calls.owner('createTicket',{companyId:company,projectId:project,subject:`Concurrencia ${n}`,description:'Solicitud simultánea de prueba',category:'consulta'})));
+    expect(new Set(results.map(r=>r.id)).size).toBe(12);
+    const numbers=results.map(r=>Number(r.number.split('-')[1])).sort((a,b)=>a-b);
+    expect(new Set(numbers).size).toBe(12);expect(numbers[11]-numbers[0]).toBe(11);
+    for(const result of results)expect((await db.collection(`tickets/${result.id}/public`).get()).size).toBe(1);
+  },60000);
+  it('concurrent comments preserve every message and add all effort minutes',async()=>{
+    const before=(await db.doc(`tickets/${ticket}`).get()).get('timeMinutes');
+    await Promise.all(Array.from({length:8},(_,n)=>calls.owner('comment',{ticketId:ticket,audience:'technical',body:`Mensaje simultáneo ${n}`,minutes:5})));
+    expect((await db.doc(`tickets/${ticket}`).get()).get('timeMinutes')).toBe(before+40);
+    const notes=await db.collection(`tickets/${ticket}/technical`).get();
+    expect(notes.docs.filter(d=>d.get('body').startsWith('Mensaje simultáneo'))).toHaveLength(8);
+  },60000);
+  it('two editors cannot silently overwrite the same document version',async()=>{
+    const created=await calls.owner('save',{collection:'companies',data:{name:'Control de edición'}});
+    const updatedAt=(await db.doc(`companies/${created.id}`).get()).get('updatedAt');
+    const results=await Promise.allSettled(['Editor A','Editor B'].map(name=>calls.owner('save',{collection:'companies',id:created.id,updatedAt,data:{name}})));
+    expect(results.filter(r=>r.status==='fulfilled')).toHaveLength(1);
+    const failure=results.find(r=>r.status==='rejected') as PromiseRejectedResult;
+    expect(failure.reason.code).toBe('functions/aborted');
+  });
+  it('concurrent duplicate transition creates only one transition event',async()=>{
+    const t=await calls.owner('createTicket',{companyId:company,projectId:project,subject:'Transición simultánea',description:'Prueba de doble acción',category:'consulta'});
+    const results=await Promise.allSettled(Array.from({length:2},()=>calls.owner('transition',{ticketId:t.id,status:'clasificacion',reason:'Clasificación simultánea'})));
+    expect(results.filter(r=>r.status==='fulfilled')).toHaveLength(1);
+    expect((await db.collection(`tickets/${t.id}/public`).get()).size).toBe(2);
+  });
+  it('concurrent renewal cannot duplicate history or regress the end date',async()=>{
+    const t=await calls.owner('save',{collection:'services',data:{companyId:company,projectId:project,name:'Renovación simultánea',startDate:'2026-01-01',endDate:'2026-12-31',published:true}});
+    const results=await Promise.allSettled(Array.from({length:2},()=>calls.owner('renew',{collection:'services',id:t.id,startDate:'2027-01-01',endDate:'2027-12-31'})));
+    expect(results.filter(r=>r.status==='fulfilled')).toHaveLength(1);
+    expect((await db.collection(`services/${t.id}/renewals`).get()).size).toBe(1);
+    expect((await db.doc(`publicServices/${t.id}`).get()).get('endDate')).toBe('2027-12-31');
+  });
+  it('concurrent reminder jobs do not duplicate notifications',async()=>{
+    const end=DateTime.now().setZone('America/Bogota').plus({days:7}).toISODate();
+    const t=await calls.owner('save',{collection:'services',data:{companyId:company,projectId:project,name:'Aviso simultáneo',startDate:'2026-01-01',endDate:end}});
+    const {generateReminders}=await import('../src/index');
+    await Promise.all([generateReminders(),generateReminders(),generateReminders()]);
+    expect((await db.collection('notifications').where('entityId','==',t.id).get()).size).toBe(1);
+  });
+  it('a single invitation cannot be consumed by two concurrent requests',async()=>{
+    const inv=await calls.owner('invite',{email:'flow-owner@example.test',companyId:company,projectIds:[project]});
+    const results=await Promise.allSettled([calls.owner('acceptInvitation',{token:inv.token}),calls.owner('acceptInvitation',{token:inv.token})]);
+    expect(results.filter(r=>r.status==='fulfilled')).toHaveLength(1);
+    expect((await db.doc('users/flow-owner').get()).get('role')).toBe('owner');
+  });
+  it.each([
+    ['empty name','save',{collection:'companies',data:{name:''}}],
+    ['nonexistent calendar date','save',{collection:'services',data:{companyId:'replace',projectId:'replace',name:'Fecha inválida',startDate:'2026-02-30',endDate:'2026-12-31'}}],
+    ['negative amount','save',{collection:'finance',data:{companyId:'replace',projectId:'replace',name:'Importe inválido',amount:-1,date:'2026-01-01'}}],
+    ['excessive page size','list',{collection:'companies',limit:100000}],
+    ['path traversal','ticketDetail',{id:'../users/flow-owner'}],
+    ['unknown action','unknownAction',{}],
+  ])('rejects malformed request: %s',async(_name,action,data)=>{
+    const payload=JSON.parse(JSON.stringify(data).replace('"companyId":"replace"',`"companyId":"${company}"`).replace('"projectId":"replace"',`"projectId":"${project}"`));
+    await expect(calls.owner(action,payload)).rejects.toThrow();
+  });
 });

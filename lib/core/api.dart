@@ -11,7 +11,12 @@ List<Json> jsonList(dynamic data) =>
     (data as List? ?? []).map(jsonMap).toList();
 
 class Api {
+  /// Replaces only the transport in widget tests; production uses Firebase.
+  @visibleForTesting
+  static Future<Json> Function(String action, Json data)? testTransport;
+
   static Future<Json> call(String action, [Json data = const {}]) async {
+    if (testTransport != null) return testTransport!(action, data);
     final result = await FirebaseFunctions.instanceFor(region: 'us-central1')
         .httpsCallable(
           'api',
@@ -30,6 +35,7 @@ class Session extends ChangeNotifier {
   final Json profile;
   List<Json> companies = [], projects = [];
   String? companyId, projectId;
+  int _projectRequest = 0;
   bool get staff => ['owner', 'commercial'].contains(role);
   bool get owner => role == 'owner';
   bool get technical => owner || role == 'technician';
@@ -73,14 +79,24 @@ class Session extends ChangeNotifier {
   }
 
   Future<void> loadProjects() async {
-    projects = (staff || companyId != null)
-        ? jsonList(
-            (await Api.list('projects', {
-              'limit': 100,
-              if (companyId != null) 'companyId': companyId,
-            }))['items'],
-          )
-        : [];
+    final request = ++_projectRequest;
+    final selectedCompany = companyId;
+    late List<Json> result;
+    try {
+      result = (staff || selectedCompany != null)
+          ? jsonList(
+              (await Api.list('projects', {
+                'limit': 100,
+                'companyId': ?selectedCompany,
+              }))['items'],
+            )
+          : [];
+    } catch (_) {
+      if (request != _projectRequest || selectedCompany != companyId) return;
+      rethrow;
+    }
+    if (request != _projectRequest || selectedCompany != companyId) return;
+    projects = result;
     if (!projects.any((p) => p['id'] == projectId)) projectId = null;
     if (!staff && projectId == null && projects.isNotEmpty) {
       projectId = projects.first['id'];
@@ -90,6 +106,8 @@ class Session extends ChangeNotifier {
   Future<void> selectCompany(String? id) async {
     companyId = id;
     projectId = null;
+    projects = [];
+    notifyListeners();
     await loadProjects();
     notifyListeners();
   }
@@ -144,6 +162,14 @@ String displayDate(dynamic value, {bool time = false}) {
     time ? 'd MMM yyyy · HH:mm' : 'd MMM yyyy',
     'es_CO',
   ).format(d);
+}
+
+DateTime? parseCalendarDate(String value) {
+  if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)) return null;
+  final date = DateTime.tryParse(value);
+  return date != null && date.toIso8601String().substring(0, 10) == value
+      ? date
+      : null;
 }
 
 String money(dynamic value, [String currency = 'COP']) => NumberFormat.currency(

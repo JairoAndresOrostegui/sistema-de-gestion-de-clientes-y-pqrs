@@ -16,6 +16,9 @@ ThemeData dtsTheme() => ThemeData(
     surface: Colors.white,
   ),
   scaffoldBackgroundColor: canvas,
+  dialogTheme: const DialogThemeData(
+    insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  ),
   textTheme: const TextTheme(
     headlineLarge: TextStyle(
       fontSize: 30,

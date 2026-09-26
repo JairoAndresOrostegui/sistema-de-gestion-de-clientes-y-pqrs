@@ -410,14 +410,19 @@ class _ResourceFormState extends State<ResourceForm> {
           'companyId': value,
           'limit': 100,
         });
-        if (mounted) setState(() => projects = jsonList(result['items']));
+        if (mounted && company == value) {
+          setState(() => projects = jsonList(result['items']));
+        }
       } catch (e) {
-        if (mounted) setState(() => error = readableError(e));
+        if (mounted && company == value) {
+          setState(() => error = readableError(e));
+        }
       }
     }
   }
 
   Future<void> save() async {
+    if (busy) return;
     if (!form.currentState!.validate()) return;
     setState(() {
       busy = true;
@@ -520,13 +525,19 @@ class _ResourceFormState extends State<ResourceForm> {
                 tooltip: 'Seleccionar fecha',
                 icon: const Icon(Icons.calendar_today_outlined, size: 19),
                 onPressed: () async {
+                  final first = DateTime(2000), last = DateTime(2100);
+                  final parsed =
+                      parseCalendarDate(controllers[f.key]!.text) ??
+                      DateTime.now();
                   final date = await showDatePicker(
                     context: context,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                    initialDate:
-                        DateTime.tryParse(controllers[f.key]!.text) ??
-                        DateTime.now(),
+                    firstDate: first,
+                    lastDate: last,
+                    initialDate: parsed.isBefore(first)
+                        ? first
+                        : parsed.isAfter(last)
+                        ? last
+                        : parsed,
                   );
                   if (date != null) {
                     controllers[f.key]!.text = date.toIso8601String().substring(
@@ -544,13 +555,13 @@ class _ResourceFormState extends State<ResourceForm> {
         }
         if (v != null && v.isNotEmpty) {
           if (f.kind == 'number' &&
-              (num.tryParse(v) == null || num.parse(v) < 0)) {
+              (num.tryParse(v) == null ||
+                  !num.parse(v).isFinite ||
+                  num.parse(v) < 0)) {
             return 'Ingresa un valor válido';
           }
-          if (f.kind == 'date' &&
-              (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(v) ||
-                  DateTime.tryParse(v) == null)) {
-            return 'Usa AAAA-MM-DD';
+          if (f.kind == 'date' && parseCalendarDate(v) == null) {
+            return 'Ingresa una fecha válida (AAAA-MM-DD)';
           }
           if (f.kind == 'email' && !v.contains('@')) return 'Correo inválido';
         }
@@ -777,8 +788,10 @@ class _ResourceFormState extends State<ResourceForm> {
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 12,
+              runSpacing: 8,
               children: [
                 TextButton(
                   onPressed: busy ? null : () => Navigator.pop(context),
@@ -854,13 +867,13 @@ class _ResourcePageState extends State<ResourcePage> {
   }
 
   void reload() {
-    setState(
-      () => future = Api.list(widget.collection, {
+    setState(() {
+      future = Api.list(widget.collection, {
         ...widget.session.filters,
         if (cursor != null) 'cursor': cursor,
         if (search.text.trim().isNotEmpty) 'search': search.text.trim(),
-      }),
-    );
+      });
+    });
   }
 
   Future<void> create([Json? record]) async {
@@ -879,6 +892,7 @@ class _ResourcePageState extends State<ResourcePage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(r['name'] ?? 'Detalle'),
+        scrollable: true,
         content: SizedBox(
           width: 560,
           child: SingleChildScrollView(
@@ -1081,43 +1095,62 @@ class _ResourcePageState extends State<ResourcePage> {
                               horizontal: 18,
                               vertical: 8,
                             ),
-                            leading: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: canvas,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                widget.collection == 'companies'
-                                    ? Icons.business_outlined
-                                    : widget.collection == 'projects'
-                                    ? Icons.layers_outlined
-                                    : Icons.description_outlined,
-                                color: navy,
-                              ),
-                            ),
+                            leading: MediaQuery.sizeOf(context).width < 600
+                                ? null
+                                : Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: canvas,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(
+                                      widget.collection == 'companies'
+                                          ? Icons.business_outlined
+                                          : widget.collection == 'projects'
+                                          ? Icons.layers_outlined
+                                          : Icons.description_outlined,
+                                      color: navy,
+                                    ),
+                                  ),
                             title: Text(
                               r['name'] ?? 'Sin nombre',
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            subtitle: Text(
-                              [
-                                if (r['companyId'] != null)
-                                  widget.session.companyName(r['companyId']),
-                                if (r['module'] != null) '${r['module']}',
-                                if (r['endDate'] != null)
-                                  'Vence ${displayDate(r['endDate'])}',
-                                if (r['dueDate'] != null)
-                                  displayDate(r['dueDate']),
-                                if (r['amount'] != null)
-                                  money(r['amount'], r['currency'] ?? 'COP'),
-                              ].join(' · '),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  [
+                                    if (r['companyId'] != null)
+                                      widget.session.companyName(
+                                        r['companyId'],
+                                      ),
+                                    if (r['module'] != null) '${r['module']}',
+                                    if (r['endDate'] != null)
+                                      'Vence ${displayDate(r['endDate'])}',
+                                    if (r['dueDate'] != null)
+                                      displayDate(r['dueDate']),
+                                    if (r['amount'] != null)
+                                      money(
+                                        r['amount'],
+                                        r['currency'] ?? 'COP',
+                                      ),
+                                  ].join(' · '),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (r['status'] != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 6),
+                                    child: StatusBadge(r['status']),
+                                  ),
+                              ],
                             ),
-                            trailing: r['status'] != null
-                                ? StatusBadge(r['status'])
-                                : const Icon(Icons.chevron_right),
+                            trailing: const Icon(Icons.chevron_right),
                             onTap: () => details(r),
                           ),
                         ),
@@ -1147,8 +1180,10 @@ class _ResourcePageState extends State<ResourcePage> {
                             icon: const Icon(Icons.download_outlined, size: 18),
                             label: const Text('Exportar esta página'),
                           ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
                               TextButton(
                                 onPressed: history.isEmpty

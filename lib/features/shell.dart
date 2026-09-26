@@ -384,8 +384,8 @@ class _DashboardPageState extends State<DashboardPage> {
     load();
   }
 
-  void load() => setState(
-    () => future = Future.wait([
+  void load() => setState(() {
+    future = Future.wait([
       Api.call('dashboard', widget.session.filters),
       Api.list('tickets', {...widget.session.filters, 'limit': 5}),
       Api.list('events', {...widget.session.filters, 'limit': 4}),
@@ -393,8 +393,8 @@ class _DashboardPageState extends State<DashboardPage> {
         ...widget.session.filters,
         'limit': 5,
       }),
-    ]),
-  );
+    ]);
+  });
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -485,7 +485,11 @@ class _DashboardPageState extends State<DashboardPage> {
               LayoutBuilder(
                 builder: (context, c) {
                   final width = c.maxWidth;
-                  final cardWidth = width >= 850
+                  final cardWidth =
+                      width < 500 ||
+                          MediaQuery.textScalerOf(context).scale(1) > 1.4
+                      ? width
+                      : width >= 850
                       ? (width - 48) / 4
                       : (width - 16) / 2;
                   return Wrap(
@@ -577,13 +581,15 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 12,
+                        runSpacing: 8,
                         children: [
-                          Expanded(
-                            child: Text(
-                              'Solicitudes para seguir de cerca',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
+                          Text(
+                            'Solicitudes para seguir de cerca',
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
                           TextButton(
                             onPressed: () => widget.navigate('tickets'),

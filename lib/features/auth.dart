@@ -78,7 +78,9 @@ class _SessionGateState extends State<SessionGate> {
   }
 
   void retry() {
-    setState(() => future = load());
+    setState(() {
+      future = load();
+    });
   }
 
   @override
@@ -207,6 +209,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> run(Future<void> Function() action) async {
+    if (busy) return;
     setState(() {
       busy = true;
       error = null;
@@ -225,7 +228,9 @@ class _LoginPageState extends State<LoginPage> {
     body: LayoutBuilder(
       builder: (context, c) => Row(
         children: [
-          if (c.maxWidth > 950)
+          if (c.maxWidth > 1100 &&
+              c.maxHeight > 800 &&
+              MediaQuery.textScalerOf(context).scale(1) < 1.5)
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -314,11 +319,17 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (c.maxWidth <= 950) ...[
+                        if (!(c.maxWidth > 1100 &&
+                            c.maxHeight > 800 &&
+                            MediaQuery.textScalerOf(context).scale(1) <
+                                1.5)) ...[
                           const Brand(),
                           const SizedBox(height: 40),
                         ],
-                        Row(
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 8,
                           children: [
                             const StatusBadge('QA'),
                             const SizedBox(width: 8),
@@ -353,11 +364,18 @@ class _LoginPageState extends State<LoginPage> {
                           child: Row(
                             children: [
                               Expanded(child: Divider()),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  'o con tu correo',
-                                  style: TextStyle(color: muted, fontSize: 12),
+                              Flexible(
+                                flex: 4,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    'o con tu correo',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: muted,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
                               ),
                               Expanded(child: Divider()),

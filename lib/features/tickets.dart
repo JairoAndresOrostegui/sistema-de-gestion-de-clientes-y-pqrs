@@ -114,6 +114,7 @@ class _TicketFormState extends State<TicketForm> {
   }
 
   Future<void> loadContext() async {
+    final selectedCompany = company, selectedProject = project;
     try {
       final results = await Future.wait([
         Api.list('catalog', {
@@ -127,18 +128,21 @@ class _TicketFormState extends State<TicketForm> {
           'limit': 5,
         }),
       ]);
-      if (mounted) {
+      if (mounted && company == selectedCompany && project == selectedProject) {
         setState(() {
           catalog = jsonList(results[0]['items']);
           articles = jsonList(results[1]['items']);
         });
       }
     } catch (e) {
-      if (mounted) setState(() => error = readableError(e));
+      if (mounted && company == selectedCompany && project == selectedProject) {
+        setState(() => error = readableError(e));
+      }
     }
   }
 
   Future<void> create() async {
+    if (busy) return;
     if (!form.currentState!.validate()) return;
     setState(() {
       busy = true;
@@ -232,11 +236,13 @@ class _TicketFormState extends State<TicketForm> {
                             'companyId': v,
                             'limit': 100,
                           });
-                          if (mounted) {
+                          if (mounted && company == v) {
                             setState(() => projects = jsonList(r['items']));
                           }
                         } catch (e) {
-                          if (mounted) setState(() => error = readableError(e));
+                          if (mounted && company == v) {
+                            setState(() => error = readableError(e));
+                          }
                         }
                       },
                     ),
@@ -423,8 +429,10 @@ class _TicketFormState extends State<TicketForm> {
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 12,
+              runSpacing: 8,
               children: [
                 TextButton(
                   onPressed: busy ? null : () => Navigator.pop(context),
@@ -471,8 +479,8 @@ class _TicketsPageState extends State<TicketsPage> {
   }
 
   void reload() {
-    setState(
-      () => future = Api.list('tickets', {
+    setState(() {
+      future = Api.list('tickets', {
         ...widget.session.filters,
         if (status != null) 'status': status,
         if (priority != null) 'priority': priority,
@@ -481,8 +489,8 @@ class _TicketsPageState extends State<TicketsPage> {
         if (unassigned) 'assigneeId': '',
         if (cursor != null) 'cursor': cursor,
         if (search.text.isNotEmpty) 'search': search.text.trim(),
-      }),
-    );
+      });
+    });
   }
 
   void filter(VoidCallback action) {
@@ -662,8 +670,10 @@ class _TicketsPageState extends State<TicketsPage> {
                             icon: const Icon(Icons.download_outlined, size: 18),
                             label: const Text('Exportar esta página'),
                           ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
                               TextButton(
                                 onPressed: history.isEmpty
@@ -747,22 +757,29 @@ class TicketRow extends StatelessWidget {
               children: [
                 Text(
                   '${ticket['number']} · ${ticket['subject']}',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 5),
                 Text(
                   '${session.companyName(ticket['companyId'])} · ${label(ticket['category'])} · ${displayDate(ticket['createdAt'])}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: muted, fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    StatusBadge(ticket['status']),
+                    StatusBadge(ticket['priority']),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          StatusBadge(ticket['status']),
-          if (MediaQuery.sizeOf(context).width > 800) ...[
-            const SizedBox(width: 12),
-            StatusBadge(ticket['priority']),
-          ],
         ],
       ),
     ),
@@ -799,16 +816,17 @@ class _TicketDetailState extends State<TicketDetail> {
   }
 
   void reload() {
-    setState(
-      () => future = Api.call('ticketDetail', {
+    setState(() {
+      future = Api.call('ticketDetail', {
         'id': widget.id,
         'audience': audience,
         if (cursor != null) 'cursor': cursor,
-      }),
-    );
+      });
+    });
   }
 
   Future<void> send() async {
+    if (sending) return;
     if (body.text.trim().isEmpty) {
       toast(context, 'Escribe un mensaje antes de enviar.');
       return;
@@ -909,6 +927,7 @@ class _TicketDetailState extends State<TicketDetail> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
           title: const Text('Actualizar solicitud'),
+          scrollable: true,
           content: SizedBox(
             width: 450,
             child: Column(
@@ -938,6 +957,7 @@ class _TicketDetailState extends State<TicketDetail> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     initialValue: priority,
+                    isExpanded: true,
                     decoration: const InputDecoration(
                       labelText: 'Prioridad determinada por DTS',
                     ),

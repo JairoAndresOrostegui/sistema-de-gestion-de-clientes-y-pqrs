@@ -156,29 +156,31 @@ class Brand extends StatelessWidget {
         child: const Icon(Icons.hub_outlined, color: navy, size: 26),
       ),
       const SizedBox(width: 12),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'DTS',
-            style: TextStyle(
-              color: light ? Colors.white : navy,
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-              height: 1.1,
+      Flexible(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'DTS',
+              style: TextStyle(
+                color: light ? Colors.white : navy,
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+                height: 1.1,
+              ),
             ),
-          ),
-          Text(
-            'GESTIÓN & SOPORTE',
-            style: TextStyle(
-              color: light ? Colors.white70 : muted,
-              fontSize: 9,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.2,
+            Text(
+              'GESTIÓN & SOPORTE',
+              style: TextStyle(
+                color: light ? Colors.white70 : muted,
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.2,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ],
   );
