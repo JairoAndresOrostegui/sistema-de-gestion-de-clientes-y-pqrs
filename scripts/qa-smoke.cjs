@@ -28,6 +28,7 @@ async function main(){
   await page.getByLabel('Contraseña',{exact:true}).click();await page.getByLabel('Contraseña',{exact:true}).pressSequentially(password,{delay:15});
   await page.getByRole('button',{name:'Iniciar sesión',exact:true}).click();
   await page.getByRole('button',{name:'Nueva solicitud',exact:true}).first().waitFor({timeout:45000});
+  await page.getByText(/^Solicitudes abiertas\s+1/).waitFor({timeout:45000});
   if(errors.length)throw Error('Browser exception: '+errors[0]);
   fs.mkdirSync('artifacts',{recursive:true});await page.screenshot({path:'artifacts/dashboard-qa.png',fullPage:true});console.log('QA authenticated browser dashboard: OK');
 }

@@ -38,6 +38,7 @@ Siguiente incremento recomendado: gestor documental y editor de revisiones de ca
 - Emuladores Auth/Firestore/Functions/Storage: 37 pruebas aprobadas, incluidos permisos API, reglas, adjuntos, flujo completo, invitaciones de equipo, importación y recordatorios.
 - Web release: compilada.
 - Android debug QA: APK compilado.
+- QA desplegado: autenticación, altas mínimas, consultas, búsqueda e indicadores verificados contra Firebase real con una cuenta comercial temporal; datos y cuenta eliminados al finalizar. La auditoría conserva el registro de verificación.
 - iOS: no compilado por falta de macOS/Xcode en este entorno.
 
 Consultar README para comandos y los resultados finales de despliegue. Los fixtures y pruebas usan datos ficticios en emuladores y no se cargan automáticamente en QA.

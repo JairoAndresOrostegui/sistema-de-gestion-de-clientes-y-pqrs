@@ -57,7 +57,7 @@ npm --prefix functions run build
 firebase deploy --project qa --only 'firestore,storage,functions,hosting'
 ```
 
-APK: `build/app/outputs/flutter-apk/app-debug.apk`. No contiene firma de distribución de Play Store. iOS: abrir `ios/Runner.xcworkspace` en macOS y seguir DEPLOYMENT.
+APK universal: `build/app/outputs/flutter-apk/app-debug.apk`. También se generó `app-arm64-v8a-debug.apk`, más pequeño para teléfonos Android ARM64, mediante `flutter build apk --debug --split-per-abi`. No contienen firma de distribución de Play Store. iOS: abrir `ios/Runner.xcworkspace` en macOS y seguir DEPLOYMENT.
 
 `scripts/browser-smoke.cjs` comprueba el inicio real en Chrome y captura vistas de escritorio/móvil. Ejecutar un servidor estático de `build/web` en 7357 y luego `node scripts/browser-smoke.cjs`; o pasar como argumento la URL QA. Las capturas quedan en `artifacts/`, excluido de Git.
 
