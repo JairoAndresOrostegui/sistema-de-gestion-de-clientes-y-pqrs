@@ -14,7 +14,7 @@ async function query(collection,key,value){return (await request(`${base}:runQue
 const remove=d=>request(`https://firestore.googleapis.com/v1/${d.name}`,'DELETE');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(check,description,timeout=90000){const end=Date.now()+timeout;while(Date.now()<end){const result=await check();if(result)return result;await delay(1200);}throw Error(`Timeout: ${description}`);}
-let uid,browser,page,eventId;const report={checks:[],startedAt:new Date().toISOString()};
+let uid,browser,page,eventId;const eventIds=[];const report={checks:[],startedAt:new Date().toISOString()};
 const pass=label=>{report.checks.push(label);console.log('PASS',label);};
 async function main(){
   const email=`qa-push-${Date.now()}@example.test`,password=randomBytes(24).toString('base64url');
@@ -42,6 +42,7 @@ async function main(){
   if(JSON.stringify(devices).includes(web.token))throw Error('Token leaked in device response');
   pass('Mobile and web destinations remain independent; tokens are private');
   eventId=`qa_push_${Date.now()}`;
+  eventIds.push(eventId);
   await put(`notificationEvents/${eventId}`,{kind:'qa.push',audience:'public',targetUid:uid,entityId:eventId,body:'Comprobación temporal QA: recepción y lectura verificables',actorId:uid,device:{slot:'web',platform:'web',label:'Chrome QA',sessionId:web.sessionId,installationId:web.installationId},createdAt:new Date().toISOString(),state:'pending',nextAttemptAt:new Date().toISOString()});
   const notice=await until(async()=>{const items=await query('notifications','eventId',eventId);return items.find(v=>fields(v).recipientId===uid);},'deployed trigger fanout');
   const noticeId=notice.name.split('/').pop();
@@ -53,6 +54,22 @@ async function main(){
   const read=fields(await request(`${base}/notifications/${noticeId}`));const opened=fields(await request(`${base}/notifications/${noticeId}/deliveries/web`));
   if(!read.readAt||!opened.openedAt)throw Error('Open/read receipt missing');
   pass('Notification tap opens authorized detail and confirms opening and reading');
+  // Leave the app entirely: the service worker must receive and display this one.
+  await page.goto('about:blank');const backgroundId=`qa_background_${Date.now()}`;eventIds.push(backgroundId);
+  const backgroundBody='Comprobación QA: aviso recibido con la aplicación cerrada';
+  await put(`notificationEvents/${backgroundId}`,{kind:'qa.background',audience:'public',targetUid:uid,entityId:backgroundId,body:backgroundBody,actorId:uid,createdAt:new Date().toISOString(),state:'pending',nextAttemptAt:new Date().toISOString()});
+  const background=await until(async()=>{const items=await query('notifications','eventId',backgroundId);return items.find(v=>fields(v).recipientId===uid);},'background fanout');const backgroundNoticeId=background.name.split('/').pop();
+  await until(async()=>{try{return fields(await request(`${base}/notifications/${backgroundNoticeId}/deliveries/web`)).status==='accepted';}catch{return false;}},'background FCM acceptance');
+  // A same-origin static document permits inspecting the browser notification store
+  // without starting Flutter or fabricating a foreground receipt.
+  await page.goto(`https://${project}.web.app/firebase-messaging-sw.js`);
+  await until(()=>page.evaluate(async id=>{const registrations=await navigator.serviceWorker.getRegistrations();const notifications=(await Promise.all(registrations.map(r=>r.getNotifications()))).flat();return notifications.some(n=>n.tag===id);},backgroundNoticeId),'service worker background notification');
+  if(fields(await request(`${base}/notifications/${backgroundNoticeId}/deliveries/web`)).receivedAt)throw Error('Background delivery fabricated a foreground receipt');
+  pass('Closed app receives a real background notification through its service worker');
+  await page.goto(`https://${project}.web.app/?notification=${backgroundNoticeId}`,{waitUntil:'networkidle'});await page.locator('flutter-view').waitFor({timeout:60000});const restoredSemantics=page.locator('flt-semantics-placeholder');if(await restoredSemantics.count())await restoredSemantics.evaluate(e=>e.click());
+  await page.getByText(backgroundBody,{exact:true}).waitFor({timeout:60000});
+  const backgroundRead=fields(await request(`${base}/notifications/${backgroundNoticeId}`));if(!backgroundRead.readAt)throw Error('Restored login deep link was not read');
+  pass('Notification URL restores authenticated session, opens its detail and marks it read');
   const replacement=await api('registerDevice',{slot:'web',platform:'web',label:'Segundo navegador QA',installationId:randomUUID()});
   const stale=await api('updateDeviceToken',{sessionId:web.sessionId,token:web.token,permission:'authorized'});
   if(!stale.superseded)throw Error('Stale token refresh replaced newest destination');
@@ -68,7 +85,7 @@ main().catch(async e=>{report.error=e.message;console.error(e.message);if(page){
     // Disable account first so a delayed worker cannot create new deliveries.
     try{await put(`users/${uid}`,{active:false});}catch{}
     try{
-      if(eventId){for(const n of await query('notifications','eventId',eventId)){const ds=await request(`https://firestore.googleapis.com/v1/${n.name}/deliveries`);for(const d of ds.documents||[])await remove(d);await remove(n);}await request(`${base}/notificationEvents/${eventId}`,'DELETE');}
+      for(const event of eventIds){for(const n of await query('notifications','eventId',event)){const ds=await request(`https://firestore.googleapis.com/v1/${n.name}/deliveries`);for(const d of ds.documents||[])await remove(d);await remove(n);}await request(`${base}/notificationEvents/${event}`,'DELETE');}
       for(const col of ['deviceSessions','pushTokens'])for(const d of await query(col,'uid',uid))await remove(d);
       const slots=await request(`${base}/userDevices/${uid}/slots`);for(const d of slots.documents||[])await remove(d);
       await request(`${base}/users/${uid}`,'DELETE');await request(`https://identitytoolkit.googleapis.com/v1/projects/${project}/accounts:delete`,'POST',{localId:uid});

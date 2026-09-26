@@ -14,9 +14,9 @@ Fecha: 2026-09-26. Entorno de ejecución: Windows, Firebase QA y emuladores Fire
 | Functions y reglas | 72 pruebas aprobadas con Firebase Auth, Firestore, Functions y Storage en emuladores. |
 | Web | Compilación release JavaScript completada. |
 | Android | APK debug compilado correctamente. El compilador Java informó uso de API deprecada en dependencias; no impidió la compilación. |
-| Push real QA en Chrome | Aprobado: registro FCM, destinos separados, función desplegada, recepción, apertura, lectura, reemplazo concurrente y limpieza de identidad temporal. |
+| Push real QA en Chrome | Aprobado: registro FCM, destinos separados, función desplegada, recepción, apertura, lectura, reemplazo concurrente y limpieza de identidad temporal. También recepción en segundo plano mediante service worker y apertura por enlace con sesión restaurada. |
 | Navegación real QA | 75 visitas de pantalla en cinco tamaños; sin errores/advertencias de consola durante operación normal. El fallo de red provocado mostró error y recuperó datos al reintentar. |
-| CI iOS | Compilación de esta revisión en curso; no confundir una compilación sin firma con prueba de push físico. |
+| CI iOS | Compilación release sin firma aprobada en macOS. No equivale a distribución por App Store ni a prueba push en iPhone físico. |
 
 ## Casos de notificaciones cubiertos
 
@@ -24,7 +24,15 @@ Registro separado de web/celular; sustitución por nuevo acceso; accesos simult�
 
 El emulador no emula FCM. Las pruebas de envío del servidor inyectan un proveedor controlado. El script `qa-notifications.cjs` verifica por separado el proveedor real con identidad y destino temporales.
 
-La prueba real de push terminó el 26/09/2026 a las 18:05:33 UTC. Se ejecutó con un perfil regular temporal de Chrome, porque incógnito y la supresión de red en segundo plano del automatizador impiden probar el servicio push. El script conserva únicamente estados de prueba, sin tokens en el reporte. La migración histórica se ejecutó y no encontró avisos legados pendientes en QA.
+La prueba real ampliada de push terminó el 26/09/2026 a las 18:14:12 UTC. Se ejecutó con un perfil regular temporal de Chrome, porque incógnito y la supresión de red en segundo plano del automatizador impiden probar el servicio push. En segundo plano se comprobó el aviso almacenado por el service worker sin fabricar un recibo de primer plano. Después se abrió el enlace, se restauró la sesión y se confirmó la lectura. El script conserva únicamente estados de prueba, sin tokens en el reporte. La migración histórica se ejecutó y no encontró avisos legados pendientes en QA.
+
+## Publicación y comprobación final
+
+Código de aplicación publicado en Git con `282b177`; revisión de pruebas y CI `c21d1ba`. [GitHub Actions 36261520306](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36261520306) terminó con `verify` e `ios-check` aprobados. Los cambios posteriores del reporte y del script de comprobación en segundo plano no modifican el código de la aplicación desplegada.
+
+Firebase QA confirmó las cinco funciones en estado `ACTIVE`: `api`, `renewalReminders`, `notificationDispatch`, `notificationLegacy` y `notificationRetry`. Hosting quedó publicado en https://sistema-de-gestion-y-pqrs.web.app. Firestore/Storage e índices fueron desplegados. Los scripts de comprobación eliminaron sus identidades, destinos, eventos y entregas temporales.
+
+APK locales: `build/app/outputs/flutter-apk/app-debug.apk`, `app-arm64-v8a-debug.apk`, `app-armeabi-v7a-debug.apk` y `app-x86_64-debug.apk`. Todos son de QA y firma debug. No había teléfono Android ni iPhone conectado en el entorno de trabajo; se verificaron compilación, interfaz y servidor, y el push real se verificó en Chrome.
 
 ## Correcciones derivadas de pruebas
 
@@ -36,6 +44,7 @@ CI detectó tres avisos de estilo en las nuevas pruebas visuales; se corrigieron
 
 ## Configuración pendiente y límites
 
+- Auditoría de dependencias de ejecución: dos alertas moderadas transitivas (`gaxios` y `uuid`), ninguna alta ni crítica. Se conservan documentadas; no se impuso una versión mayor mediante un override sin validar compatibilidad del SDK.
 - iOS: equipo Apple, firma de la aplicación, clave APNs en Firebase y validación en iPhone real. El código, bundle ID, entitlement push y modo remoto están preparados.
 - Android: firma de distribución/Play App Signing y prueba push en un teléfono físico. El APK debug es para QA.
 - Navegadores: requieren HTTPS, permiso y soporte push; las políticas del navegador/sistema pueden impedir entrega. Revisar cuál es el último destino de cada tipo.
