@@ -38,7 +38,7 @@ module.exports = async function auditNavigation(page) {
       if(destination==='Resumen') {
         await page.getByText(/^Solicitudes abiertas\s+\d/).waitFor({timeout:30000});
       } else if(destination==='Notificaciones') {
-        await page.getByText('Estás al día',{exact:true}).or(page.getByRole('button',{name:'Leído',exact:true})).first().waitFor({timeout:30000});
+        await page.getByText('Estás al día',{exact:true}).or(page.getByText(/DTS-\d+: solicitud recibida/)).first().waitFor({timeout:30000});
       } else if(destination!=='Mi cuenta') {
         await page.getByText('Exportar esta página',{exact:true}).waitFor({timeout:30000});
       }

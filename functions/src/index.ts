@@ -3,6 +3,8 @@ import {getAuth} from 'firebase-admin/auth';
 import {getFirestore, FieldValue, FieldPath, Transaction, Query, DocumentData} from 'firebase-admin/firestore';
 import {onCall, HttpsError, CallableRequest} from 'firebase-functions/v2/https';
 import {onSchedule} from 'firebase-functions/v2/scheduler';
+import {onDocumentCreated} from 'firebase-functions/v2/firestore';
+import {deviceContext, deviceAction, notificationEvent, notificationList, notificationAction, processNotificationEvent, retryNotificationEvents, legacyNotification, mayReceive, deliveryView} from './notifications';
 import {setGlobalOptions} from 'firebase-functions/v2';
 import {z} from 'zod';
 import {randomBytes, createHash} from 'node:crypto';
@@ -21,7 +23,7 @@ async function actor(req:CallableRequest):Promise<Actor> {
   if(!req.auth.token.email_verified)deny('Verifica tu correo antes de acceder');
   const profile=(await db.doc(`users/${req.auth.uid}`).get()).data();
   if(!profile?.active)deny('Tu cuenta todavía no tiene acceso. Solicita una invitación a DTS.');
-  return {uid:req.auth.uid,email:String(req.auth.token.email||''),role:roleSchema.parse(profile.role),permissions:profile.permissions||[]};
+  return {uid:req.auth.uid,email:String(req.auth.token.email||''),role:roleSchema.parse(profile.role),permissions:profile.permissions||[],device:await deviceContext(req.auth.uid,req.data?.clientContext)};
 }
 const isStaff=(a:Actor)=>['owner','commercial'].includes(a.role);
 async function scope(a:Actor,companyId:string,projectId?:string) {
@@ -40,18 +42,16 @@ async function ticketAccess(a:Actor,ticketId:string) {
   return {ref:snap.ref,data:t};
 }
 function audit(tx:Transaction,a:Actor,action:string,entity:string,summary:Record<string,unknown>={}) {
-  tx.create(db.collection('audit').doc(),{actorId:a.uid,action,entity,summary,createdAt:now()});
+  tx.create(db.collection('audit').doc(),{actorId:a.uid,action,entity,summary,device:a.device||null,createdAt:now()});
 }
 function publicEvent(tx:Transaction,ticketId:string,a:Actor,body:string) {
   tx.create(db.collection(`tickets/${ticketId}/public`).doc(),{kind:'event',body,authorId:a.uid,createdAt:now(),audience:'public'});
-}
-async function notifyStaff(tx:Transaction,entityId:string,body:string) {
-  tx.create(db.collection('notifications').doc(),{audience:'staff',entityId,body,createdAt:now(),status:'pending',emailStatus:'not_configured'});
 }
 const allowedLists=['companies','projects','contacts','catalog','articles','events','contracts','services','finance','tickets','memberships','users','notifications','audit','repositories','imports','catalogReviews','publicContracts','publicServices','installations','products'];
 const privateLists=['contacts','contracts','services','finance','users','audit','products'];
 async function list(a:Actor,input:unknown) {
   const v=z.object({collection:z.enum(allowedLists as [string,...string[]]),companyId:id.optional(),projectId:id.optional(),cursor:z.string().max(200).optional(),limit:z.number().int().min(1).max(100).default(30),status:text.optional(),category:text.optional(),priority:text.optional(),assigneeId:text.optional(),mine:z.boolean().optional(),search:z.string().max(100).optional()}).parse(input);
+  if(v.collection==='notifications')return notificationList(a,v);
   if(privateLists.includes(v.collection)&&!isStaff(a))deny();
   if(['repositories','imports','catalogReviews'].includes(v.collection))requirePermission(a,'technical');
   if(v.collection==='users'||v.collection==='audit')requirePermission(a,'manageAccess');
@@ -132,7 +132,7 @@ async function createTicket(a:Actor,input:unknown) {
     const counter=db.doc('counters/tickets');const c=await tx.get(counter);const sequence=(c.get('value')||0)+1;
     const number=`DTS-${String(sequence).padStart(6,'0')}`;tx.set(counter,{value:sequence});tx.create(ticket,{...data,number});
     publicEvent(tx,ticket.id,a,'Solicitud recibida. DTS revisará su clasificación y cobertura.');
-    audit(tx,a,'ticket.create',ticket.path,{number});await notifyStaff(tx,ticket.id,`Nueva solicitud ${number}: ${v.subject}`);
+    audit(tx,a,'ticket.create',ticket.path,{number});notificationEvent(tx,a,ticket.id,data,'ticket.create','public',`${number}: solicitud recibida`);
     return {id:ticket.id,number};
   });
 }
@@ -146,6 +146,24 @@ async function ticketDetail(a:Actor,input:unknown) {
   if(v.audience==='technical')await db.collection('audit').add({actorId:a.uid,action:'technical.read',entity:`tickets/${v.id}`,createdAt:now()});
   return {ticket:{id:v.id,...data},items:events.docs.slice(0,50).map(s=>({id:s.id,...s.data()})),cursor:events.size>50?events.docs[49].id:null};
 }
+async function ticketNotifications(a:Actor,input:unknown) {
+  const v=z.object({ticketId:id,cursor:id.optional()}).parse(input);await ticketAccess(a,v.ticketId);
+  let q=db.collection('notificationEvents').where('ticketId','==',v.ticketId).orderBy('createdAt','desc').orderBy('__name__','desc');
+  if(v.cursor){const s=await db.doc(`notificationEvents/${v.cursor}`).get();if(s.exists&&s.get('ticketId')===v.ticketId)q=q.startAfter(s);}
+  const page=await q.limit(51).get();const items=[];
+  for(const event of page.docs.slice(0,50)) {
+    const e=event.data();if(!await mayReceive(a.uid,e))continue;
+    let notices:Query=db.collection('notifications').where('eventId','==',event.id);
+    if(!isStaff(a))notices=notices.where('recipientId','==',a.uid);
+    const recipients=[];
+    for(const n of (await notices.get()).docs) {
+      const u=await db.doc(`users/${n.get('recipientId')}`).get();
+      recipients.push({id:n.id,recipient:isStaff(a)?u.get('email')||n.get('recipientId'):'Mi cuenta',readAt:n.get('readAt')||null,deliveries:(await n.ref.collection('deliveries').get()).docs.map(s=>deliveryView(s.id,s.data()))});
+    }
+    items.push({id:event.id,body:e.body,createdAt:e.createdAt,state:e.state,device:e.device?{slot:e.device.slot,platform:e.device.platform,label:e.device.label}:null,recipients});
+  }
+  return {items,cursor:page.size>50?page.docs[49].id:null};
+}
 async function comment(a:Actor,input:unknown) {
   const v=z.object({ticketId:id,audience:audienceSchema,body:text.min(1),attachments:z.array(z.object({path:z.string().max(500),name:z.string().max(180),size:z.number().max(10*1024*1024)})).max(5).default([]),minutes:z.number().int().min(0).max(1440).default(0)}).parse(input);
   if(a.role==='reader')deny();const {ref}=await ticketAccess(a,v.ticketId);
@@ -158,7 +176,7 @@ async function comment(a:Actor,input:unknown) {
     const patch:Record<string,unknown>={updatedAt:now(),timeMinutes:FieldValue.increment(v.minutes)};
     if(isStaff(a)&&v.audience==='public'&&!t.firstResponseAt)patch.firstResponseAt=now();
     tx.update(ref,patch);audit(tx,a,'ticket.comment',ref.path,{audience:v.audience,minutes:v.minutes});
-    tx.create(db.collection('notifications').doc(),{audience:a.role==='client'?'staff':t.requesterId,entityId:ref.id,body:`Actualización en ${t.number}`,createdAt:now(),status:'pending',emailStatus:'not_configured'});
+    notificationEvent(tx,a,ref.id,t,'ticket.comment',v.audience,`${t.number}: ${v.audience==='public'?'nueva respuesta':v.audience==='internal'?'nota interna':'nota técnica'}${v.attachments.length?' con evidencia':''}${v.minutes?' y tiempo registrado':''}`);
   });return {ok:true};
 }
 async function transition(a:Actor,input:unknown) {
@@ -181,7 +199,7 @@ async function transition(a:Actor,input:unknown) {
     if(v.status==='reabierto')patch.resolvedAt=null;
     tx.update(ref,patch);publicEvent(tx,ref.id,a,`${t.status} → ${v.status}. ${v.reason}`);
     audit(tx,a,'ticket.transition',ref.path,{from:t.status,to:v.status,priorityBefore:t.priority,priorityAfter:v.priority||t.priority,assigneeId:assignee||t.assigneeId});
-    tx.create(db.collection('notifications').doc(),{audience:t.requesterId,entityId:ref.id,body:`${t.number}: ${v.status}`,createdAt:stamp,status:'pending',emailStatus:'not_configured'});
+    notificationEvent(tx,a,ref.id,t,'ticket.transition','public',`${t.number}: ${t.status} → ${v.status}`);
   });return {ok:true};
 }
 async function accessManagement(a:Actor,input:unknown) {
@@ -291,11 +309,14 @@ export const api=onCall({timeoutSeconds:120, cors:true},async req=>{
     const a=await actor(req);
     switch(v.action){
       case 'session':return {uid:a.uid,email:a.email,role:a.role,permissions:a.permissions};
+      case 'registerDevice':case 'updateDeviceToken':case 'unregisterDevice':case 'myDevices':return await deviceAction(a,v.action,v.data);
+      case 'notificationDetail':case 'notificationReceipt':case 'markRead':return await notificationAction(a,v.action,v.data);
       case 'list':return await list(a,v.data);
       case 'save':return await save(a,v.data);
       case 'dashboard':return await dashboard(a,v.data);
       case 'createTicket':return await createTicket(a,v.data);
       case 'ticketDetail':return await ticketDetail(a,v.data);
+      case 'ticketNotifications':return await ticketNotifications(a,v.data);
       case 'comment':return await comment(a,v.data);
       case 'transition':return await transition(a,v.data);
       case 'access':return await accessManagement(a,v.data);
@@ -304,7 +325,6 @@ export const api=onCall({timeoutSeconds:120, cors:true},async req=>{
       case 'githubImport':return await preview(a,v.data,true);
       case 'approveImport':return await approve(a,v.data);
       case 'renew':return await renew(a,v.data);
-      case 'markRead': {const n=await db.doc(`notifications/${id.parse((v.data as any).id)}`).get();if(!n.exists||(n.get('audience')!==a.uid&&!(isStaff(a)&&n.get('audience')==='staff')))deny();await n.ref.update({[`readBy.${a.uid}`]:now()});return {ok:true};}
       default:throw new HttpsError('invalid-argument','Operación desconocida');
     }
   } catch(e) {
@@ -337,3 +357,12 @@ export async function generateReminders() {
   }
 }
 export const renewalReminders=onSchedule({schedule:'0 7 * * *',timeZone:'America/Bogota',retryCount:3},generateReminders);
+export const notificationDispatch=onDocumentCreated({document:'notificationEvents/{eventId}',timeoutSeconds:540,retry:true},async event=>{
+  if(process.env.FUNCTIONS_EMULATOR==='true')return; // FCM has no emulator; tests inject a sender explicitly.
+  await processNotificationEvent(event.params.eventId);
+});
+export const notificationLegacy=onDocumentCreated({document:'notifications/{notificationId}',retry:true},async event=>{
+  if(process.env.FUNCTIONS_EMULATOR==='true'||!event.data)return;
+  await legacyNotification(event.params.notificationId,event.data.data());
+});
+export const notificationRetry=onSchedule({schedule:'every 5 minutes',timeoutSeconds:540,retryCount:3},retryNotificationEvents);

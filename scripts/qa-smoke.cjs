@@ -36,14 +36,20 @@ async function main(){
 }
 main().catch(async e=>{console.error(e.message);if(page){await page.screenshot({path:'artifacts/qa-failure.png',fullPage:true});console.log((await page.locator('body').innerText()).slice(0,2500));}process.exitCode=1;}).finally(async()=>{
   if(browser)await browser.close();
+  if(uid)await request(`${base}/users/${uid}?updateMask.fieldPaths=active`,'PATCH',{fields:{active:{booleanValue:false}}}).catch(()=>{});
   // Delete only the IDs created by this execution; audit remains as a record of validation.
   for(const p of created.reverse())try{
     if(p.startsWith('tickets/')){
       const notes=await request(`${base}/${p}/public`);for(const d of notes.documents||[])await request(`https://firestore.googleapis.com/v1/${d.name}`,'DELETE');
       const notifications=await request(`${base}:runQuery`,'POST',{structuredQuery:{from:[{collectionId:'notifications'}],where:{fieldFilter:{field:{fieldPath:'entityId'},op:'EQUAL',value:{stringValue:p.split('/')[1]}}}}});
-      for(const n of notifications)if(n.document)await request(`https://firestore.googleapis.com/v1/${n.document.name}`,'DELETE');
+      for(const n of notifications)if(n.document){const ds=await request(`https://firestore.googleapis.com/v1/${n.document.name}/deliveries`);for(const d of ds.documents||[])await request(`https://firestore.googleapis.com/v1/${d.name}`,'DELETE');await request(`https://firestore.googleapis.com/v1/${n.document.name}`,'DELETE');}
+      const events=await request(`${base}:runQuery`,'POST',{structuredQuery:{from:[{collectionId:'notificationEvents'}],where:{fieldFilter:{field:{fieldPath:'ticketId'},op:'EQUAL',value:{stringValue:p.split('/')[1]}}}}});for(const e of events)if(e.document)await request(`https://firestore.googleapis.com/v1/${e.document.name}`,'DELETE');
     }
     await request(`${base}/${p}`,'DELETE');
   }catch(e){console.error('Entity cleanup failed:',p,e.message);process.exitCode=1;}
-  if(uid){try{await request(`${base}/users/${uid}`,'DELETE');await request(`https://identitytoolkit.googleapis.com/v1/projects/${project}/accounts:delete`,'POST',{localId:uid});console.log('Temporary QA account and entities removed.');}catch(e){console.error('QA cleanup:',e.message);process.exitCode=1;}}
+  if(uid){try{
+    for(const collection of ['deviceSessions','pushTokens']){const rows=await request(`${base}:runQuery`,'POST',{structuredQuery:{from:[{collectionId:collection}],where:{fieldFilter:{field:{fieldPath:'uid'},op:'EQUAL',value:{stringValue:uid}}}}});for(const r of rows)if(r.document)await request(`https://firestore.googleapis.com/v1/${r.document.name}`,'DELETE');}
+    const slots=await request(`${base}/userDevices/${uid}/slots`);for(const d of slots.documents||[])await request(`https://firestore.googleapis.com/v1/${d.name}`,'DELETE');
+    await request(`${base}/users/${uid}`,'DELETE');await request(`https://identitytoolkit.googleapis.com/v1/projects/${project}/accounts:delete`,'POST',{localId:uid});console.log('Temporary QA account and entities removed.');
+  }catch(e){console.error('QA cleanup:',e.message);process.exitCode=1;}}
 });

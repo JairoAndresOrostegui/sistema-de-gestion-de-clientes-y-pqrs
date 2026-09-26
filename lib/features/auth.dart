@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../core/api.dart';
+import '../core/notifications.dart';
 import '../core/theme.dart';
 import '../core/widgets.dart';
 import 'shell.dart';
@@ -74,6 +75,7 @@ class _SessionGateState extends State<SessionGate> {
     }
     final s = Session(await Api.call('session'));
     await s.load();
+    await DeviceNotifications.login(s.uid);
     return s;
   }
 
@@ -175,7 +177,7 @@ class _SessionGateState extends State<SessionGate> {
                         child: const Text('Ya verifiqué / Volver a intentar'),
                       ),
                       TextButton(
-                        onPressed: () => FirebaseAuth.instance.signOut(),
+                        onPressed: DeviceNotifications.signOut,
                         child: const Text('Cerrar sesión'),
                       ),
                     ],

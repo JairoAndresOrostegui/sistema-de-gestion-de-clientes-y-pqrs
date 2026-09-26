@@ -1,4 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import '../core/notifications.dart';
+import 'notification_widgets.dart';
 import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/theme.dart';
@@ -22,16 +23,43 @@ class _AppShellState extends State<AppShell> {
   void initState() {
     super.initState();
     widget.session.addListener(changed);
+    DeviceNotifications.incoming.addListener(incoming);
+    WidgetsBinding.instance.addPostFrameCallback((_) => incoming());
   }
 
   @override
   void dispose() {
     widget.session.removeListener(changed);
+    DeviceNotifications.incoming.removeListener(incoming);
     super.dispose();
   }
 
   void changed() {
     if (mounted) setState(() => revision++);
+  }
+
+  void incoming() {
+    final event = DeviceNotifications.incoming.value;
+    if (!mounted || event == null) return;
+    DeviceNotifications.incoming.value = null;
+    if (event['opened'] == true) {
+      openNotification(context, widget.session, event['id'], push: true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Tienes una nueva notificación en DTS'),
+          action: SnackBarAction(
+            label: 'Ver',
+            onPressed: () => openNotification(
+              context,
+              widget.session,
+              event['id'],
+              push: true,
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   List<(String, String, IconData)> get destinations => [
@@ -173,7 +201,7 @@ class _AppShellState extends State<AppShell> {
                 ),
                 IconButton(
                   tooltip: 'Cerrar sesión',
-                  onPressed: () => FirebaseAuth.instance.signOut(),
+                  onPressed: DeviceNotifications.signOut,
                   icon: const Icon(
                     Icons.logout,
                     color: Colors.white54,

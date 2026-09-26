@@ -7,6 +7,7 @@ import '../core/api.dart';
 import '../core/theme.dart';
 import '../core/widgets.dart';
 import 'resources.dart';
+import 'notification_widgets.dart';
 
 const ticketStatuses = [
   'nuevo',
@@ -1024,6 +1025,14 @@ class _TicketDetailState extends State<TicketDetail> {
     appBar: AppBar(
       title: const Text('Detalle de solicitud'),
       actions: [
+        IconButton(
+          tooltip: 'Trazabilidad de notificaciones',
+          onPressed: () => showDialog<void>(
+            context: context,
+            builder: (_) => TicketNotificationTrace(ticketId: widget.id),
+          ),
+          icon: const Icon(Icons.notifications_active_outlined),
+        ),
         IconButton(
           tooltip: 'Actualizar',
           onPressed: reload,

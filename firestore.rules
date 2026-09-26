@@ -27,7 +27,8 @@ service cloud.firestore {
       allow read: if collection in ['publicContracts','publicServices'] && projectAccess(resource.data.companyId,resource.data.projectId);
       allow read: if collection in ['repositories','imports','catalogOrigins','catalogReviews','technicalNotes'] && technical() && (owner() || projectAccess(resource.data.companyId,resource.data.projectId));
       allow read: if collection == 'audit' && owner();
-      allow read: if collection == 'notifications' && active() && (resource.data.audience == request.auth.uid || (resource.data.audience == 'staff' && staff()));
+      // Notification permissions are re-evaluated by the callable, including revocation.
+      // Device tokens, outbox events and delivery receipts are server-only as well.
       // All mutations, role assignments, audit and counters use privileged functions.
       allow write: if false;
     }

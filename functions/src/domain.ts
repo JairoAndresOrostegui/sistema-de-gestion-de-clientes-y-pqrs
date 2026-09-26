@@ -3,7 +3,7 @@ import {z} from 'zod';
 
 export const roleSchema = z.enum(['owner', 'commercial', 'client', 'technician', 'reader']);
 export type Role = z.infer<typeof roleSchema>;
-export type Actor = {uid: string; email: string; role: Role; permissions: string[]};
+export type Actor = {uid: string; email: string; role: Role; permissions: string[]; device?: {sessionId:string;slot:string;platform:string;label:string;installationId:string}|null};
 export const id = z.string().regex(/^[a-zA-Z0-9_-]{1,128}$/);
 export const text = z.string().trim().max(12000);
 export const name = z.string().trim().min(1).max(180);

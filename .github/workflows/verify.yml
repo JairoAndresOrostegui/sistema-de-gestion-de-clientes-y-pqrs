@@ -28,6 +28,7 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       - run: flutter build web --release
+      - run: node scripts/check-web-plugins.cjs
       - run: npm --prefix functions ci
       - run: npm --prefix functions run build
       - run: npm install --global firebase-tools@15.13.0

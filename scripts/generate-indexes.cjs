@@ -14,5 +14,9 @@ for(const scope of scopes)for(const audience of [[],['requesterId'],[{fieldPath:
 }
 for(const coll of ['contracts','services']){add(coll,['status','endDate']);add(coll,['companyId','projectId','type']);}
 add('memberships',['uid','active']);
+add('notifications',['recipientId',{fieldPath:'createdAt',order:'DESCENDING'},{fieldPath:'__name__',order:'DESCENDING'}]);
+add('notificationEvents',['state','nextAttemptAt']);
+add('notificationEvents',['ticketId',{fieldPath:'createdAt',order:'DESCENDING'},{fieldPath:'__name__',order:'DESCENDING'}]);
+add('notifications',['eventId','recipientId']);
 fs.writeFileSync('firestore.indexes.json',JSON.stringify({indexes,fieldOverrides:[]},null,2)+'\n');
 console.log(`${indexes.length} indexes generated`);

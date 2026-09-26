@@ -27,6 +27,12 @@ describe.skipIf(!enabled)('Firestore and Storage tenant isolation',()=>{
   });
   afterAll(async()=>{await env?.cleanup();});
   function db(uid:string){return env.authenticatedContext(uid,{email_verified:true}).firestore();}
+  it('device tokens, outbox, inbox and receipts require the authorized callable even for owner',async()=>{
+    for(const path of ['userDevices/client/slots/web','pushTokens/token','deviceSessions/session','notificationEvents/event','notifications/notice','notifications/notice/deliveries/web']) {
+      await assertFails(getDoc(doc(db('owner'),path)));
+      await assertFails(setDoc(doc(db('client'),path),{token:'forged',readAt:'forged'}));
+    }
+  });
   it('client reads only assigned company/project',async()=>{await assertSucceeds(getDoc(doc(db('client'),'companies','A')));await assertFails(getDoc(doc(db('client'),'companies','B')));await assertSucceeds(getDoc(doc(db('client'),'projects','p1')));await assertFails(getDoc(doc(db('client'),'projects','p2')));});
   it('requester visibility and project boundaries protect tickets',async()=>{await assertSucceeds(getDoc(doc(db('client'),'tickets','t1')));await assertFails(getDoc(doc(db('client'),'tickets','t2')));await assertFails(getDoc(doc(db('client'),'tickets','private')));});
   it('commercial can read public/internal, never technical or repositories',async()=>{await assertSucceeds(getDoc(doc(db('commercial'),'tickets/t1/public/note')));await assertSucceeds(getDoc(doc(db('commercial'),'tickets/t1/internal/note')));await assertFails(getDoc(doc(db('commercial'),'tickets/t1/technical/note')));await assertFails(getDoc(doc(db('commercial'),'repositories','r1')));await assertSucceeds(getDoc(doc(db('owner'),'tickets/t1/technical/note')));});

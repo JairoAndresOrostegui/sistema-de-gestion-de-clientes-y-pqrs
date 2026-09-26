@@ -11,6 +11,8 @@ List<Json> jsonList(dynamic data) =>
     (data as List? ?? []).map(jsonMap).toList();
 
 class Api {
+  static Json? clientContext;
+
   /// Replaces only the transport in widget tests; production uses Firebase.
   @visibleForTesting
   static Future<Json> Function(String action, Json data)? testTransport;
@@ -22,7 +24,7 @@ class Api {
           'api',
           options: HttpsCallableOptions(timeout: const Duration(seconds: 120)),
         )
-        .call({'action': action, 'data': data});
+        .call({'action': action, 'data': data, 'clientContext': clientContext});
     return jsonMap(result.data);
   }
 

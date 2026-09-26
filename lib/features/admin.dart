@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../core/notifications.dart';
+import 'notification_widgets.dart';
 import '../core/api.dart';
 import '../core/theme.dart';
 import '../core/widgets.dart';
@@ -442,28 +443,54 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       icon: Icons.notifications_none,
                     ),
                   ...items.map(
-                    (n) => ListTile(
+                    (n) => ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
                       leading: Icon(
                         n['readBy']?[widget.session.uid] != null
                             ? Icons.notifications_none
                             : Icons.notifications_active_outlined,
                         color: navy,
                       ),
-                      title: Text(n['body']),
-                      subtitle: Text(displayDate(n['createdAt'], time: true)),
-                      trailing: TextButton(
-                        onPressed: () async {
-                          try {
-                            await Api.call('markRead', {'id': n['id']});
-                            load();
-                          } catch (e) {
-                            if (context.mounted) {
-                              toast(context, readableError(e), error: true);
-                            }
-                          }
-                        },
-                        child: const Text('Leído'),
+                      title: Text(
+                        n['body'],
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      subtitle: Text(displayDate(n['createdAt'], time: true)),
+                      children: [
+                        Text(n['body']),
+                        DeliverySummary(n['deliveries']),
+                        Wrap(
+                          spacing: 12,
+                          children: [
+                            TextButton(
+                              onPressed: () => openNotification(
+                                context,
+                                widget.session,
+                                n['id'],
+                              ),
+                              child: const Text('Ver detalle'),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                try {
+                                  await Api.call('markRead', {'id': n['id']});
+                                  load();
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    toast(
+                                      context,
+                                      readableError(e),
+                                      error: true,
+                                    );
+                                  }
+                                }
+                              },
+                              child: const Text('Leído'),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                   if (s.data!['cursor'] != null)
@@ -500,6 +527,8 @@ class AccountPage extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       const PageHeading('Mi cuenta', 'Tu identidad y métodos de acceso.'),
+      const DevicesCard(),
+      const SizedBox(height: 16),
       Card(
         child: Padding(
           padding: const EdgeInsets.all(28),
@@ -539,7 +568,7 @@ class AccountPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: () => FirebaseAuth.instance.signOut(),
+                onPressed: DeviceNotifications.signOut,
                 child: const Text('Cerrar sesión'),
               ),
             ],
