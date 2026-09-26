@@ -42,11 +42,15 @@ La prueba real detectó un registro web de plugins obsoleto en la caché increme
 
 CI detectó tres avisos de estilo en las nuevas pruebas visuales; se corrigieron. Se actualizaron las acciones de infraestructura para usar las versiones vigentes con runtime Node 24 y se fijó Ubuntu 24.04 para evitar cambios automáticos de imagen. Referencias: [checkout](https://github.com/actions/checkout), [setup-node](https://github.com/actions/setup-node), [setup-java](https://github.com/actions/setup-java), [upload-artifact](https://github.com/actions/upload-artifact).
 
+## Revisión posterior de pendientes
+
+Consultar [09 · Revisión de pendientes](09_Revision_pendientes.md) para los cambios posteriores en dependencias, firma y validación Android. Ese informe actualiza los pendientes de esta entrega inicial.
+
 ## Configuración pendiente y límites
 
-- Auditoría de dependencias de ejecución: dos alertas moderadas transitivas (`gaxios` y `uuid`), ninguna alta ni crítica. Se conservan documentadas; no se impuso una versión mayor mediante un override sin validar compatibilidad del SDK.
+- Dependencias: alertas de `gaxios`/`uuid` corregidas en la revisión 09; auditoría completa en cero y pruebas de compatibilidad añadidas.
 - iOS: equipo Apple, firma de la aplicación, clave APNs en Firebase y validación en iPhone real. El código, bundle ID, entitlement push y modo remoto están preparados.
-- Android: firma de distribución/Play App Signing y prueba push en un teléfono físico. El APK debug es para QA.
+- Android: firma local release preparada en la revisión 09. Siguen pendientes inscripción/Play App Signing y prueba en teléfono físico.
 - Navegadores: requieren HTTPS, permiso y soporte push; las políticas del navegador/sistema pueden impedir entrega. Revisar cuál es el último destino de cada tipo.
 - Correo externo de negocio: no hay proveedor configurado; los avisos usan bandeja y FCM.
 - Los eventos y FCM pueden repetir entrega tras un fallo entre el envío y su confirmación. Los IDs de bandeja son deterministas y los push usan tags/collapse IDs, pero no se promete exactamente una entrega.

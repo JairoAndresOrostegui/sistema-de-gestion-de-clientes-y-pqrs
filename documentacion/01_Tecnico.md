@@ -128,7 +128,7 @@ El primer despliegue de funciones con política de reintentos requiere `--force`
 
 Después de agregar plugins, verificar el registro generado con `check-web-plugins.cjs`. Si detecta una caché obsoleta, regenerar la caché Flutter de compilación y compilar nuevamente antes de desplegar. No editar manualmente los registrantes generados. El inicio de sesión guarda el destino; la conexión FCM continúa de forma asíncrona y limita la espera por token.
 
-Android usa el canal `dts_updates`, permiso de notificaciones y paquete `co.com.dts.dts_gestion`. El APK debug sirve para QA. iOS usa `co.com.dts.dtsGestion`, entitlement push y modo remoto en segundo plano; requiere equipo Apple, firma y clave APNs en Firebase para enviar a un dispositivo real. Web requiere HTTPS y compatibilidad del navegador.
+Android usa el canal `dts_updates`, permiso de notificaciones y paquete `co.com.dts.dts_gestion`. Hay APK/AAB release de QA con certificado propio y credenciales locales excluidas de Git; ver [firma, pruebas nativas y resultados](09_Revision_pendientes.md). El APK debug también sirve para desarrollo. iOS usa `co.com.dts.dtsGestion`, entitlement push y modo remoto en segundo plano; requiere equipo Apple, firma y clave APNs en Firebase para enviar a un dispositivo real. Web requiere HTTPS y compatibilidad del navegador.
 
 Referencia oficial: [Configuración FCM Flutter](https://firebase.google.com/docs/cloud-messaging/flutter/get-started), [Recepción de mensajes](https://firebase.google.com/docs/cloud-messaging/flutter/receive-messages), [Gestión de tokens](https://firebase.google.com/docs/cloud-messaging/manage-tokens).
 

@@ -75,7 +75,7 @@ Revisar el JSON y cargarlo desde **Enlazar proyecto → Importar archivo local**
 
 1. GitHub App privada: App ID, instalación y clave privada en Secret Manager para activar repositorios privados.
 2. Proveedor de correo si se desea enviar avisos por email. La bandeja personal y el envío push FCM están implementados, con destinos separados web/celular y trazabilidad de cada etapa de atención.
-3. Equipo Apple, firma iOS y clave APNs en Firebase; clave de distribución Android y, cuando corresponda, cuentas de tiendas.
+3. Equipo Apple, firma iOS y clave APNs en Firebase; cuentas de tiendas y Play App Signing. Android ya tiene firma release local, excluida de Git; ver [revisión de pendientes](documentacion/09_Revision_pendientes.md).
 
 El bootstrap, identidades OAuth móviles, Storage CORS y proyecto Firebase QA ya están configurados. No hace falta registrar públicamente un primer administrador ni compartir contraseñas.
 
@@ -86,3 +86,5 @@ La [carpeta de documentación](documentacion/00_Indice.md) contiene el documento
 En **Mi cuenta** se registra el último navegador y la última aplicación celular por separado y se activa push. **Notificaciones** conserva bandeja personal y resultados de envío. La campana del detalle de una solicitud abre su trazabilidad. Los push no incluyen detalles privados en la pantalla bloqueada.
 
 Funciones nuevas: `notificationDispatch`, `notificationLegacy` y `notificationRetry`. La migración de avisos antiguos usa `node scripts/migrate-notifications.cjs` y conserva historia sin reenviar push retroactivos. Ver [operación técnica](documentacion/01_Tecnico.md) para permisos, reintentos, FCM y límites de confirmación.
+
+Android release: `flutter build apk --release` y `flutter build appbundle --release`, con `android/key.properties` local. Artefactos: `build/app/outputs/flutter-apk/app-release.apk` y `build/app/outputs/bundle/release/app-release.aab`, conectados a QA. La prueba nativa reproducible es `node scripts/qa-android-notifications.cjs` sobre un emulador desechable con Google Play Services; limpia los datos de la app y utiliza una cuenta temporal.

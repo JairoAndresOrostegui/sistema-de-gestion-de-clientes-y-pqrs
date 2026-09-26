@@ -13,6 +13,8 @@ Desarrollo & Tecnología Santander. Entorno de entrega: QA. Actualización: 26 d
 
 Acceso QA: https://sistema-de-gestion-y-pqrs.web.app
 
+- [09 · Revisión de pendientes](09_Revision_pendientes.md): dependencias, firma Android, pruebas nativas y requisitos externos. [PDF](09_Revision_pendientes.pdf).
+
 Los documentos 01 a 08 también están disponibles en PDF, con texto seleccionable y páginas numeradas, listos para compartir. Los archivos Markdown son las versiones editables. Para el cliente, entregar la descripción funcional y el manual del rol que le corresponda.
 
 Acceso directo a los PDF: [Técnico](01_Tecnico.pdf), [Funcional](02_Funcional_cliente.pdf), [Propietario](03_Manual_propietario.pdf), [Comercial](04_Manual_comercial.pdf), [Técnico adicional](05_Manual_tecnico.pdf), [Cliente](06_Manual_cliente.pdf), [Lector](07_Manual_lector.pdf) y [Validación](08_Validacion.pdf).
