@@ -14,7 +14,8 @@ La primera entrega tenía 42 pruebas y una revisión visual limitada. Esta audit
 | Otros roles | Visibilidad del menú comercial, técnico, cliente y lector; permisos efectivos cubiertos además por reglas y llamadas reales en emuladores |
 | Diálogos | Abrir/cerrar permisos, cambio de estado y detalles en 5 tamaños; calendario con una fecha escrita fuera del rango del selector |
 | Teclado | 12 formularios en vertical y horizontal con espacio de teclado simulado |
-| Navegador real | 75 visitas (15 pantallas comerciales × 5 tamaños) en Chrome, frontend local compilado contra Firebase QA real; cero errores o advertencias de consola durante la navegación normal |
+| Navegador real | 75 visitas (15 pantallas comerciales × 5 tamaños) en Chrome contra la web y backend publicados en Firebase QA; se espera contenido cargado antes de avanzar. Cero errores o advertencias de consola durante la navegación normal |
+| Interrupción de red | Petición abortada deliberadamente en Chrome: mensaje de error visible y reintento que recupera datos reales. El único error de consola de esta fase es el `ERR_INTERNET_DISCONNECTED` inyectado, registrado por separado |
 | Revisión visual | Capturas de resumen, solicitudes, empresas y contratos por tamaño; inspección de capturas móviles y de escritorio |
 
 La matriz de widgets utiliza un transporte de API sustituible exclusivamente para las pruebas: comprueba presentación, interacción y manejo de respuestas, sin sustituir las verificaciones del backend. El recorrido Chrome utiliza una cuenta comercial temporal y datos sintéticos que se eliminan al finalizar; conserva auditoría y no reutiliza consecutivos.
@@ -47,6 +48,7 @@ Estas pruebas son de concurrencia acotada y regresión. No miden capacidad máxi
 7. Selectores y diálogos de permisos, estados y detalles necesitaban expansión horizontal o desplazamiento vertical.
 8. Se añadieron guardas para impedir envíos repetidos mientras una operación está pendiente.
 9. El formulario aceptaba fechas normalizadas por Dart como 30 de febrero; ahora valida el día real. El calendario recupera fechas escritas fuera de su intervalo. Se rechazan importes no finitos.
+10. Las fallas de transporte podían mostrar mensajes técnicos como `internal [0]`; ahora se traducen a mensajes comprensibles en español.
 
 ## Advertencias y límites pendientes
 
@@ -76,3 +78,5 @@ node scripts/qa-smoke.cjs https://sistema-de-gestion-y-pqrs.web.app
 ```
 
 Resultados locales excluidos de Git: `full-ui-audit.log`, `concurrency-tests.log`, `browser-navigation.log`, `artifacts/browser-audit.json` y `artifacts/audit-*.png`.
+
+La comprobación final publicada está en `browser-navigation-final.log`. El código final `a2a5119` tiene su [ejecución CI](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36251606023); consultar su estado directamente. Web y APK QA recompilados, Hosting desplegado y datos/cuenta temporal eliminados al cerrar esta auditoría.
