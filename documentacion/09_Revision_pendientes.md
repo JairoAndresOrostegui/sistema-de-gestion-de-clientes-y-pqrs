@@ -19,6 +19,8 @@ Fecha: 26 de septiembre de 2026. Esta revisión aborda dependencias y Android. A
 
 El CI amplió la verificación con compilación Android debug y auditoría de dependencias. Se conserva el análisis, las 303 pruebas Flutter, compilación web, comprobación de plugins y pruebas de reglas/servidor. Apple no recibió cambios.
 
+[GitHub Actions 36271189228](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36271189228), sobre `8b58f1c`, terminó aprobado. Confirmó análisis, pruebas Flutter, compilaciones Android/web, auditoría npm y 74 pruebas del servidor/reglas. La tarea Apple preexistente también se ejecutó automáticamente, sin cambios en esa plataforma. Se cancelaron las dos ejecuciones anteriores sustituidas por esta revisión.
+
 La prueba Android final terminó a las 20:59:20 UTC del 26/09/2026; comprobó con `pidof` que el proceso estaba ausente antes de enviar el último aviso. Se eliminaron todos los recursos temporales. El código de servidor/firma se publicó hasta `8b58f1c`; las revisiones posteriores de documentación y automatización no cambian la aplicación desplegada.
 
 Artefactos locales de QA con firma release: `build/app/outputs/flutter-apk/app-release.apk` y `build/app/outputs/bundle/release/app-release.aab`. Ambos usan Firebase QA. El AAB sirve para preparar la publicación en Google Play; no es un instalador directo.
