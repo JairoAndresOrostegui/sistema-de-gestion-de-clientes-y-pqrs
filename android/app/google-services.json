@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1821240632",
+    "project_id": "sistema-de-gestion-y-pqrs",
+    "storage_bucket": "sistema-de-gestion-y-pqrs.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1821240632:android:6a6758ae1d811693fae5cd",
+        "android_client_info": {
+          "package_name": "co.com.dts.dts_gestion"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1821240632-tt7aknrifhbnpt0pbf0vlunvrf4j7a73.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "co.com.dts.dts_gestion",
+            "certificate_hash": "a187c24b66ac65722d8005e81acac337f96af1df"
+          }
+        },
+        {
+          "client_id": "1821240632-7u5egdiv0c16jlaoi3so1l4osl4dvs1d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFFV2fDpPPmGEUfFFUKfqUlf1aylI7Qik"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1821240632-7u5egdiv0c16jlaoi3so1l4osl4dvs1d.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1821240632-rn8f0f6lh8ifvg3h23dd90169b2otmol.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "co.com.dts.dtsGestion"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

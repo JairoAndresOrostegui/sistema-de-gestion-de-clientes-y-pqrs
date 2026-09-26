@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signed() { return request.auth != null && request.auth.token.email_verified == true; }
+    function profile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function active() { return signed() && profile().active == true; }
+    function owner() { return active() && profile().role == 'owner'; }
+    function staff() { return active() && profile().role in ['owner','commercial']; }
+    function technical() { return active() && (owner() || (profile().role == 'technician' && 'technical' in profile().permissions)); }
+    function membership(company) { return get(/databases/$(database)/documents/memberships/$(request.auth.uid + '_' + company)).data; }
+    function companyAccess(company) { return active() && (staff() || membership(company).active == true); }
+    function projectAccess(company, project) { return active() && (staff() || (membership(company).active == true && (membership(company).allProjects == true || project in membership(company).projectIds))); }
+    function ticketAccess(t) { return projectAccess(t.companyId,t.projectId) && (staff() || profile().role != 'client' || (t.requesterId == request.auth.uid || (t.visibility == 'project' && membership(t.companyId).ticketScope == 'project'))); }
+    match /users/{uid} { allow get: if signed() && (request.auth.uid == uid || owner()); allow list: if owner(); }
+    match /memberships/{member} { allow read: if active() && (owner() || resource.data.uid == request.auth.uid); }
+    match /companies/{company} { allow read: if companyAccess(company); }
+    match /projects/{project} { allow read: if projectAccess(resource.data.companyId, project); }
+    match /tickets/{ticket} {
+      allow read: if ticketAccess(resource.data);
+      match /{audience}/{comment} {
+        allow read: if ticketAccess(get(/databases/$(database)/documents/tickets/$(ticket)).data) && (audience == 'public' || (audience == 'internal' && staff()) || (audience == 'technical' && technical()));
+      }
+    }
+    match /{collection}/{doc} {
+      allow read: if collection in ['contacts','contracts','services','finance','products'] && staff();
+      allow read: if collection in ['catalog','articles','events','installations'] && projectAccess(resource.data.companyId,resource.data.projectId) && (staff() || resource.data.published == true);
+      allow read: if collection in ['publicContracts','publicServices'] && projectAccess(resource.data.companyId,resource.data.projectId);
+      allow read: if collection in ['repositories','imports','catalogOrigins','catalogReviews','technicalNotes'] && technical() && (owner() || projectAccess(resource.data.companyId,resource.data.projectId));
+      allow read: if collection == 'audit' && owner();
+      allow read: if collection == 'notifications' && active() && (resource.data.audience == request.auth.uid || (resource.data.audience == 'staff' && staff()));
+      // All mutations, role assignments, audit and counters use privileged functions.
+      allow write: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

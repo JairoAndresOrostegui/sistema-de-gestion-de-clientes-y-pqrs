@@ -1,0 +1,14 @@
+# Uso de DTS Gestión
+
+1. Abre la web QA o la aplicación Android. Usa **Continuar con Google** con `jairoandresorostegui@gmail.com` para entrar como propietario. El acceso requiere que Firebase confirme la identidad verificada. Las cuentas nuevas no obtienen permisos automáticamente.
+2. En **Empresas**, crea el nombre. Completa después datos tributarios, contacto, dirección y estado. En **Personas y estructura** registra contactos, cargo, área, área superior y sede.
+3. En **Proyectos**, selecciona la empresa y escribe un nombre. Registra varios proyectos independientes; cambia el contexto con los selectores superiores. **Ver ficha 360°** abre el resumen del ámbito elegido. Las demás secciones mantienen ese contexto.
+4. En **Usuarios y permisos**, crea una invitación para un correo, elige el rol de la cuenta nueva y selecciona empresa y proyectos. Copia el enlace y compártelo. El destinatario inicia sesión con el correo verificado y acepta la invitación. La invitación vence en 7 días y se consume una vez. Para cambiar el rol de una cuenta existente, usa la lista de usuarios. No se envían mensajes automáticamente.
+5. En **Nueva solicitud**, elige empresa/proyecto, tipo, asunto y descripción. Puedes elegir una funcionalidad o **No sé / Otra consulta**. En errores se ofrecen pasos, resultado esperado y resultado real. El cliente indica impacto; DTS fija prioridad.
+6. Tras radicar, abre el ticket y adjunta evidencias en la conversación. Selecciona la audiencia antes de enviar: público, nota interna o técnico reservado. El comercial nunca dispone de la audiencia técnica.
+7. Usa **Actualizar estado** para clasificar, asignar a primer nivel, escalar, analizar y resolver. Cada transición exige motivo. Escalar sin UID asigna al propietario. El solicitante puede confirmar una resolución o reabrir durante 30 días.
+8. Registra **Contratos y cobertura** con vigencia propia. Activa SLA si hay un acuerdo: primera respuesta, resolución, horario, días y festivos. Registra **Servicios y renovaciones** por separado para dominio, hosting, SSL, etc. En detalles, **Registrar renovación** conserva el período anterior.
+9. En **Implementación y agenda**, registra hitos, tareas, visitas, capacitaciones y despliegues. Marca qué información se publica para clientes.
+10. En **Enlazar proyecto**, selecciona empresa/proyecto. Para GitHub público pega la URL; para una carpeta local usa la CLI documentada en README. Revisa propuestas, modifica las descripciones y aprueba solo lo correcto. Publicar requiere una selección explícita. Las reimportaciones proponen revisiones y preservan las ediciones manuales.
+
+Las tablas exportan la página visible en CSV. **Notificaciones** reúne novedades y vencimientos. En **Mi cuenta** puedes vincular Google a una cuenta ya autenticada; no se fusionan cuentas por coincidencia de correo sin probar la identidad.

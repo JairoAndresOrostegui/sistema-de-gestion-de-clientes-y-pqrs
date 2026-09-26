@@ -1,0 +1,21 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function profile() { return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data; }
+    function active() { return request.auth != null && request.auth.token.email_verified == true && profile().active == true; }
+    function staff() { return active() && profile().role in ['owner','commercial']; }
+    function technical() { return active() && (profile().role == 'owner' || (profile().role == 'technician' && 'technical' in profile().permissions)); }
+    function member(company) { return firestore.get(/databases/(default)/documents/memberships/$(request.auth.uid + '_' + company)).data; }
+    function ticketAccess(ticket) {
+      let t=firestore.get(/databases/(default)/documents/tickets/$(ticket)).data;
+      return active() && (staff() || (member(t.companyId).active == true && (member(t.companyId).allProjects == true || t.projectId in member(t.companyId).projectIds) && (profile().role != 'client' || t.requesterId == request.auth.uid || (t.visibility == 'project' && member(t.companyId).ticketScope == 'project'))));
+    }
+    function audienceAccess(audience) { return audience == 'public' || (audience == 'internal' && staff()) || (audience == 'technical' && technical()); }
+    match /attachments/{ticket}/{audience}/{uid}/{file} {
+      allow read: if ticketAccess(ticket) && audienceAccess(audience);
+      allow create: if ticketAccess(ticket) && audienceAccess(audience) && request.auth.uid == uid && profile().role != 'reader' && request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('image/(png|jpeg|webp)|application/pdf|text/plain') && !request.resource.metadata.keys().hasAny(['firebaseStorageDownloadTokens']);
+      allow update, delete: if false;
+    }
+    match /{allPaths=**} { allow read, write: if false; }
+  }
+}

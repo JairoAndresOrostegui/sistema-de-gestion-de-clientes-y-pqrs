@@ -1,0 +1,52 @@
+name: Verify Flutter and Firebase
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.6'
+          channel: stable
+          cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter build web --release
+      - run: npm --prefix functions ci
+      - run: npm --prefix functions run build
+      - run: npm install --global firebase-tools@15.13.0
+      - run: firebase emulators:exec --only auth,firestore,functions,storage --project demo-dts-gestion 'npm --prefix functions test'
+        env:
+          FUNCTIONS_EMULATOR: 'true'
+          GCLOUD_PROJECT: demo-dts-gestion
+          FUNCTIONS_DISCOVERY_TIMEOUT: '60'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flutter-web-qa
+          path: build/web
+  ios-check:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.6'
+          channel: stable
+      - run: flutter pub get
+      - run: flutter build ios --no-codesign --release
