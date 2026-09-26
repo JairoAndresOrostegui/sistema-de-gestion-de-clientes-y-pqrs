@@ -7,7 +7,7 @@ La primera entrega tenía 42 pruebas y una revisión visual limitada. Esta audit
 | Revisión | Resultado y alcance |
 | --- | --- |
 | Análisis Flutter | Sin incidencias |
-| Pruebas Flutter | 281 aprobadas; incluye parametrizaciones por pantalla/tamaño, no 281 flujos de negocio diferentes |
+| Pruebas Flutter | 284 aprobadas; incluye parametrizaciones por pantalla/tamaño, no 284 flujos de negocio diferentes |
 | Backend y reglas Firebase | 50 aprobadas en emuladores Auth, Firestore, Functions y Storage |
 | Matriz de presentación | 20 pantallas con datos ficticios extensos, 12 formularios y acceso en 7 configuraciones: 320×568, 390×844, 768×1024, 1024×768, 1440×900, 844×390 y 390×844 con texto al 200% |
 | Navegación del propietario | Las 17 entradas recorridas en 5 tamaños mediante pruebas de widgets, con respuestas API controladas |
@@ -51,10 +51,10 @@ Estas pruebas son de concurrencia acotada y regresión. No miden capacidad máxi
 ## Advertencias y límites pendientes
 
 - `npm audit --omit=dev`: **2 avisos moderados transitivos** (`gaxios` y `uuid`), 0 altos y 0 críticos al ejecutar. Pendiente actualización compatible de la cadena de dependencias; no se aplicó una sustitución forzada de versión mayor.
-- iOS: la compilación sin firma del commit `6f05f54` aprobó en [macOS/GitHub Actions](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36248668931). Los cambios posteriores tienen su propia ejecución CI. No se ha validado instalación, firma Apple ni uso en un iPhone físico.
+- iOS: la compilación sin firma de los ajustes de interfaz (`a8a1839`) aprobó en [macOS/GitHub Actions](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36250981824). Los cambios posteriores tienen su propia ejecución CI. No se ha validado instalación, firma Apple ni uso en un iPhone físico.
 - Android: compilación QA; pendiente prueba física de autenticación Google, archivos, interrupciones y ciclo de vida.
 - No se ha ejecutado una matriz de Safari/Firefox, versiones de sistema operativo, lectores de pantalla o zoom de navegador. Texto al 200% se verificó con `TextScaler` de Flutter.
-- Faltan carga sostenida, pérdidas de conectividad durante subida de adjuntos, recuperación tras cierre del proceso y auditoría de seguridad independiente.
+- Faltan carga sostenida, pérdidas de conectividad durante subida de adjuntos, recuperación tras cierre del proceso y auditoría de seguridad independiente. La creación de solicitudes todavía no ofrece una clave de idempotencia para reintentos cuando se pierde la respuesta después de persistir: este escenario necesita implementación y pruebas adicionales.
 - La navegación interna está comprobada; historial del navegador, enlaces profundos y restauración completa del estado tras recargar no forman parte de esta validación.
 - Los pendientes funcionales del pliego siguen en [PROGRESS](PROGRESS.md).
 

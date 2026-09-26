@@ -243,7 +243,12 @@ void main() {
       ResourcePage(session: session(), collection: 'companies', onScope: () {}),
       const Size(390, 844),
     );
-    expect(find.text('Sin conexión temporal'), findsOneWidget);
+    expect(
+      find.text(
+        'No se pudo conectar con el servicio. Revisa tu conexión e intenta nuevamente.',
+      ),
+      findsOneWidget,
+    );
     fail = false;
     await tester.tap(find.text('Volver a intentar'));
     await tester.pumpAndSettle();

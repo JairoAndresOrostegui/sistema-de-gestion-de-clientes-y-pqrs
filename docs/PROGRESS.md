@@ -25,7 +25,7 @@ Fecha: 26 de septiembre de 2026. Plataforma Flutter web, Android e iOS. Este doc
 6. **Administración:** búsqueda remota en selectores de más de 100 empresas/proyectos; editor visual de membresías existentes y visor de auditoría/historial. Para más de 30 proyectos específicos usar membresía de empresa o ampliar el modelo.
 7. **Correo y push:** centro de notificaciones persistente operativo; correos salientes y push pendientes de proveedor. No se envía correo ni se afirma que fue enviado.
 8. **Privacidad y operación productiva:** retención automatizada, política de backups con prueba de restauración, monitoreo, App Check, cuarentena/antivirus de adjuntos y revisión de seguridad independiente.
-9. **Distribución móvil:** APK Android QA compilado; firma de distribución propia pendiente. iOS preparado en código, configuración Firebase y callback Google; compilación sin firma en ejecución remota en macOS mediante GitHub Actions. Firma Apple, prueba en dispositivo y publicación en App Store/TestFlight pendientes.
+9. **Distribución móvil:** APK Android QA compilado; firma de distribución propia pendiente. iOS preparado en código, configuración Firebase y callback Google; compilación sin firma aprobada en macOS para los ajustes de interfaz `a8a1839`. Los cambios posteriores se verifican en su ejecución CI. Firma Apple, prueba en dispositivo y publicación en App Store/TestFlight pendientes.
 Las invitaciones del propietario también admiten cuentas nuevas comerciales, técnicas y lectoras; nunca permiten reclamar el rol propietario. Las cuentas existentes conservan su rol hasta que el propietario lo modifique explícitamente.
 
 Siguiente incremento recomendado: gestor documental y editor de revisiones de catálogo, seguido por políticas SLA avanzadas y reportes.
@@ -33,12 +33,14 @@ Siguiente incremento recomendado: gestor documental y editor de revisiones de ca
 ## Verificación ejecutada
 
 - `flutter analyze`: sin incidencias.
-- `flutter test`: 5 pruebas aprobadas (alta mínima, CSV seguro, Bogotá y vistas móvil/escritorio).
+- `flutter test`: 284 pruebas aprobadas, incluidas pantallas, formularios, navegación, teclado, errores y cambios de contexto. Las parametrizaciones por tamaño cuentan como casos separados.
 - TypeScript: compilación aprobada.
-- Emuladores Auth/Firestore/Functions/Storage: 37 pruebas aprobadas, incluidos permisos API, reglas, adjuntos, flujo completo, invitaciones de equipo, importación y recordatorios.
+- Emuladores Auth/Firestore/Functions/Storage: 50 pruebas aprobadas, incluidas concurrencia acotada, solicitudes inválidas, permisos API, reglas, adjuntos, flujo completo, invitaciones de equipo, importación y recordatorios.
 - Web release: compilada.
 - Android debug QA: APK compilado.
 - QA desplegado: autenticación, altas mínimas, consultas, búsqueda e indicadores verificados contra Firebase real con una cuenta comercial temporal; datos y cuenta eliminados al finalizar. La auditoría conserva el registro de verificación.
-- iOS: comprobación remota sin firma en curso; consultar [GitHub Actions](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36248668931). No se afirma todavía que la compilación haya aprobado.
+- iOS: ajustes de interfaz aprobados en [GitHub Actions](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36250981824), sin firma de distribución.
+
+El detalle de lo probado, las correcciones y advertencias pendientes está en [QA_AUDIT](QA_AUDIT.md).
 
 Consultar README para comandos y los resultados finales de despliegue. Los fixtures y pruebas usan datos ficticios en emuladores y no se cargan automáticamente en QA.

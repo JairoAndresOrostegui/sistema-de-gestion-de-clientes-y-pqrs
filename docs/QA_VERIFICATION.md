@@ -1,4 +1,6 @@
-# Verificación de QA — 26 de septiembre de 2026
+# Verificación inicial de QA — 26 de septiembre de 2026
+
+Este documento conserva la evidencia de la primera entrega. La revisión posterior de concurrencia, navegación y presentación está en [QA_AUDIT](QA_AUDIT.md), con 284 pruebas Flutter y 50 de backend aprobadas y sus límites explícitos.
 
 Entorno `sistema-de-gestion-y-pqrs`, web y backend publicados mediante Firebase CLI.
 

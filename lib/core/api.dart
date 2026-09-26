@@ -125,7 +125,14 @@ class Session extends ChangeNotifier {
 
 String readableError(Object error) {
   if (error is FirebaseFunctionsException) {
-    return error.message ?? 'No se pudo completar la operación.';
+    return switch (error.code) {
+      'internal' => 'No se pudo completar la operación. Intenta nuevamente.',
+      'unavailable' =>
+        'No se pudo conectar con el servicio. Revisa tu conexión e intenta nuevamente.',
+      'deadline-exceeded' =>
+        'La operación tardó demasiado. Intenta nuevamente.',
+      _ => error.message ?? 'No se pudo completar la operación.',
+    };
   }
   if (error is FirebaseAuthException) {
     return switch (error.code) {

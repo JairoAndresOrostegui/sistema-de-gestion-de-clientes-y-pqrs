@@ -1,4 +1,5 @@
 import 'package:dts_gestion/core/api.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:dts_gestion/core/theme.dart';
 import 'package:dts_gestion/features/auth.dart';
 import 'package:dts_gestion/features/resources.dart';
@@ -20,6 +21,18 @@ void main() {
     expect(csvCell('=HYPERLINK("x")'), startsWith('"\''));
     expect(csvCell('a,b'), '"a,b"');
   });
+  for (final code in ['internal', 'unavailable', 'deadline-exceeded']) {
+    test(
+      'translates transport failure $code without exposing SDK messages',
+      () {
+        final message = readableError(
+          FirebaseFunctionsException(code: code, message: 'internal [0]'),
+        );
+        expect(message, anyOf(contains('operación'), contains('servicio')));
+        expect(message, isNot(contains('[0]')));
+      },
+    );
+  }
   testWidgets('company creation requires only name', (tester) async {
     final session = Session({
       'role': 'owner',

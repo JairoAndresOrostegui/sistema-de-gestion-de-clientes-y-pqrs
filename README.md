@@ -6,6 +6,7 @@ Aplicación **Flutter** para web, Android e iOS, con Firebase Authentication, Fi
 - Repositorio: https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs
 - Administrador principal: `jairoandresorostegui@gmail.com`, acceso con Google.
 - [Estado real y pendientes](docs/PROGRESS.md) · [Manual](docs/USER_GUIDE.md) · [Modelo y seguridad](docs/ARCHITECTURE.md) · [Despliegue](docs/DEPLOYMENT.md).
+- [Auditoría ampliada de concurrencia, navegación y presentación](docs/QA_AUDIT.md): pruebas, correcciones, evidencia y límites.
 
 Esta entrega conecta los recorridos principales a persistencia real. Los pendientes del alcance ampliado y de producción están declarados en PROGRESS; no se presentan como terminados. QA comienza sin datos de clientes ficticios; los fixtures de pruebas viven en emuladores.
 
