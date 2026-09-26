@@ -14,7 +14,9 @@ Fecha: 2026-09-26. Entorno de ejecución: Windows, Firebase QA y emuladores Fire
 | Functions y reglas | 72 pruebas aprobadas con Firebase Auth, Firestore, Functions y Storage en emuladores. |
 | Web | Compilación release JavaScript completada. |
 | Android | APK debug compilado correctamente. El compilador Java informó uso de API deprecada en dependencias; no impidió la compilación. |
-| QA real y CI iOS | Verificación de esta revisión en curso; no confundir una compilación iOS sin firma con prueba de push físico. |
+| Push real QA en Chrome | Aprobado: registro FCM, destinos separados, función desplegada, recepción, apertura, lectura, reemplazo concurrente y limpieza de identidad temporal. |
+| Navegación real QA | 75 visitas de pantalla en cinco tamaños; sin errores/advertencias de consola durante operación normal. El fallo de red provocado mostró error y recuperó datos al reintentar. |
+| CI iOS | Compilación de esta revisión en curso; no confundir una compilación sin firma con prueba de push físico. |
 
 ## Casos de notificaciones cubiertos
 
@@ -22,11 +24,15 @@ Registro separado de web/celular; sustitución por nuevo acceso; accesos simult�
 
 El emulador no emula FCM. Las pruebas de envío del servidor inyectan un proveedor controlado. El script `qa-notifications.cjs` verifica por separado el proveedor real con identidad y destino temporales.
 
+La prueba real de push terminó el 26/09/2026 a las 18:05:33 UTC. Se ejecutó con un perfil regular temporal de Chrome, porque incógnito y la supresión de red en segundo plano del automatizador impiden probar el servicio push. El script conserva únicamente estados de prueba, sin tokens en el reporte. La migración histórica se ejecutó y no encontró avisos legados pendientes en QA.
+
 ## Correcciones derivadas de pruebas
 
 Los encabezados extensos de la bandeja y trazabilidad se resumieron visualmente para que el control de despliegue permanezca utilizable con texto al 200 %. El contenido completo se conserva al abrir. Se eliminó una advertencia del analizador sobre acceso a un miembro exclusivo de pruebas y se ajustaron bloques de control. La configuración Vitest se identifica como módulo ESM para evitar su advertencia de carga futura.
 
 La prueba real detectó un registro web de plugins obsoleto en la caché incremental de Flutter. Se regeneró la compilación y se añadió `scripts/check-web-plugins.cjs` al flujo CI para detectar la ausencia de preferencias, información del dispositivo o mensajería antes de publicar. También se separó la inicialización push del acceso para que una demora de FCM no bloquee el portal.
+
+CI detectó tres avisos de estilo en las nuevas pruebas visuales; se corrigieron. Se actualizaron las acciones de infraestructura para usar las versiones vigentes con runtime Node 24 y se fijó Ubuntu 24.04 para evitar cambios automáticos de imagen. Referencias: [checkout](https://github.com/actions/checkout), [setup-node](https://github.com/actions/setup-node), [setup-java](https://github.com/actions/setup-java), [upload-artifact](https://github.com/actions/upload-artifact).
 
 ## Configuración pendiente y límites
 

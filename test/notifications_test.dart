@@ -18,7 +18,7 @@ final deliveries = [
   {'slot': 'mobile', 'status': 'retry', 'attempts': 3},
 ];
 Future<Json> transport(String action, Json data) async {
-  if (action == 'myDevices')
+  if (action == 'myDevices') {
     return {
       'items': [
         for (final slot in ['web', 'mobile'])
@@ -31,7 +31,8 @@ Future<Json> transport(String action, Json data) async {
           },
       ],
     };
-  if (action == 'ticketNotifications')
+  }
+  if (action == 'ticketNotifications') {
     return {
       'items': [
         {
@@ -50,7 +51,8 @@ Future<Json> transport(String action, Json data) async {
         },
       ],
     };
-  if (action == 'list' && data['collection'] == 'notifications')
+  }
+  if (action == 'list' && data['collection'] == 'notifications') {
     return {
       'items': [
         {
@@ -61,6 +63,7 @@ Future<Json> transport(String action, Json data) async {
         },
       ],
     };
+  }
   return audit.fixture(action, data);
 }
 

@@ -13,4 +13,6 @@ Desarrollo & Tecnología Santander. Entorno de entrega: QA. Actualización: 26 d
 
 Acceso QA: https://sistema-de-gestion-y-pqrs.web.app
 
+Los documentos 01 a 08 también están disponibles en PDF, con texto seleccionable y páginas numeradas, listos para compartir. Los archivos Markdown son las versiones editables. Para el cliente, entregar la descripción funcional y el manual del rol que le corresponda.
+
 La fuente versionada es `front/documentacion`. `node scripts/sync-documentation.cjs` copia estos documentos a la carpeta `documentacion` junto a `front` y `docs`, donde se conserva el prompt original. La copia no elimina archivos adicionales. Los manuales describen el comportamiento implementado; las diferencias frente al alcance futuro están indicadas expresamente.
