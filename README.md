@@ -7,12 +7,13 @@ Aplicación **Flutter** para web, Android e iOS, con Firebase Authentication, Fi
 - Administrador principal: `jairoandresorostegui@gmail.com`, acceso con Google.
 - [Estado real y pendientes](docs/PROGRESS.md) · [Manual](docs/USER_GUIDE.md) · [Modelo y seguridad](docs/ARCHITECTURE.md) · [Despliegue](docs/DEPLOYMENT.md).
 - [Auditoría ampliada de concurrencia, navegación y presentación](docs/QA_AUDIT.md): pruebas, correcciones, evidencia y límites.
+- [Pruebas físicas y acta de decisión](documentacion/10_Pruebas_fisicas.md): recorrido por rol, dispositivos y criterios de salida.
 
 Esta entrega conecta los recorridos principales a persistencia real. Los pendientes del alcance ampliado y de producción están declarados en PROGRESS; no se presentan como terminados. QA comienza sin datos de clientes ficticios; los fixtures de pruebas viven en emuladores.
 
 ## Ejecutar
 
-Requisitos: Flutter 3.41.6 / Dart 3.11.4, Node 22, Java 21, Firebase CLI autenticado. Android SDK 36 para compilar móvil. Xcode y macOS para iOS.
+Requisitos: Flutter 3.47.5 / Dart 3.13.4, Node 22, Java 21, Firebase CLI autenticado. Android SDK 36 para compilar móvil. Xcode y macOS para iOS.
 
 ```powershell
 flutter pub get
@@ -58,7 +59,7 @@ npm --prefix functions run build
 firebase deploy --project qa --only 'firestore,storage,functions,hosting'
 ```
 
-APK universal: `build/app/outputs/flutter-apk/app-debug.apk`. También se generó `app-arm64-v8a-debug.apk`, más pequeño para teléfonos Android ARM64, mediante `flutter build apk --debug --split-per-abi`. No contienen firma de distribución de Play Store. iOS: abrir `ios/Runner.xcworkspace` en macOS y seguir DEPLOYMENT.
+APK universal: `build/app/outputs/flutter-apk/app-debug.apk`, disponible para pruebas físicas en `https://sistema-de-gestion-y-pqrs.web.app/downloads/dts-qa-debug.apk` tras el despliegue QA. No contiene firma de distribución de Play Store. iOS: abrir `ios/Runner.xcworkspace` en macOS y seguir DEPLOYMENT.
 
 `scripts/browser-smoke.cjs` comprueba el inicio real en Chrome y captura vistas de escritorio/móvil. Ejecutar un servidor estático de `build/web` en 7357 y luego `node scripts/browser-smoke.cjs`; o pasar como argumento la URL QA. Las capturas quedan en `artifacts/`, excluido de Git.
 
@@ -75,7 +76,7 @@ Revisar el JSON y cargarlo desde **Enlazar proyecto → Importar archivo local**
 
 1. GitHub App privada: App ID, instalación y clave privada en Secret Manager para activar repositorios privados.
 2. Proveedor de correo si se desea enviar avisos por email. La bandeja personal y el envío push FCM están implementados, con destinos separados web/celular y trazabilidad de cada etapa de atención.
-3. Equipo Apple, firma iOS y clave APNs en Firebase; cuentas de tiendas y Play App Signing. Android ya tiene firma release local, excluida de Git; ver [revisión de pendientes](documentacion/09_Revision_pendientes.md).
+3. Equipo Apple, firma iOS y clave APNs en Firebase; cuentas de tiendas y Play App Signing. La firma release Android del PC anterior debe restaurarse desde su respaldo; ver [revisión de pendientes](documentacion/09_Revision_pendientes.md).
 
 El bootstrap, identidades OAuth móviles, Storage CORS y proyecto Firebase QA ya están configurados. No hace falta registrar públicamente un primer administrador ni compartir contraseñas.
 
@@ -87,4 +88,4 @@ En **Mi cuenta** se registra el último navegador y la última aplicación celul
 
 Funciones nuevas: `notificationDispatch`, `notificationLegacy` y `notificationRetry`. La migración de avisos antiguos usa `node scripts/migrate-notifications.cjs` y conserva historia sin reenviar push retroactivos. Ver [operación técnica](documentacion/01_Tecnico.md) para permisos, reintentos, FCM y límites de confirmación.
 
-Android release: `flutter build apk --release` y `flutter build appbundle --release`, con `android/key.properties` local. Artefactos: `build/app/outputs/flutter-apk/app-release.apk` y `build/app/outputs/bundle/release/app-release.aab`, conectados a QA. La prueba nativa reproducible es `node scripts/qa-android-notifications.cjs` sobre un emulador desechable con Google Play Services; limpia los datos de la app y utiliza una cuenta temporal.
+Android release requiere restaurar la clave privada de firma usada en el PC anterior; `android/key.properties` apunta a esa clave pero el archivo `.jks` no vino con el proyecto. No generar otra sin un plan de actualización. La prueba nativa reproducible es `node scripts/qa-android-notifications.cjs` sobre un emulador desechable con Google Play Services; limpia los datos de la app y utiliza una cuenta temporal.

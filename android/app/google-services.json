@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1821240632-lro146tr9vlaik4ebmr8piqcihcps96n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "co.com.dts.dts_gestion",
+            "certificate_hash": "d26b0bd43500b78bbe43e54a722a44a784b7725f"
+          }
+        },
+        {
           "client_id": "1821240632-097rs9mpoi13jmv5jfqq4p9oqubo1fli.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

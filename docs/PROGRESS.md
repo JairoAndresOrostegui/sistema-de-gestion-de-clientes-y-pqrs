@@ -1,6 +1,6 @@
 # Estado de entrega — QA
 
-Fecha: 26 de septiembre de 2026. Plataforma Flutter web, Android e iOS. Este documento distingue lo operativo de lo pendiente; no declara el alcance completo listo para producción.
+Actualización: 27 de septiembre de 2026. Plataforma Flutter web, Android e iOS. Este documento distingue lo operativo de lo pendiente; no declara el alcance completo listo para producción.
 
 ## Operativo con persistencia Firebase
 
@@ -33,11 +33,11 @@ Siguiente incremento recomendado: gestor documental y editor de revisiones de ca
 ## Verificación ejecutada
 
 - `flutter analyze`: sin incidencias.
-- `flutter test`: 284 pruebas aprobadas, incluidas pantallas, formularios, navegación, teclado, errores y cambios de contexto. Las parametrizaciones por tamaño cuentan como casos separados.
+- `flutter test`: 303 pruebas aprobadas con Flutter 3.47.5, incluidas pantallas, formularios, navegación, teclado, errores y cambios de contexto. Las parametrizaciones por tamaño cuentan como casos separados.
 - TypeScript: compilación aprobada.
-- Emuladores Auth/Firestore/Functions/Storage: 50 pruebas aprobadas, incluidas concurrencia acotada, solicitudes inválidas, permisos API, reglas, adjuntos, flujo completo, invitaciones de equipo, importación y recordatorios.
+- Emuladores Auth/Firestore/Functions/Storage: 74 pruebas aprobadas, incluidas concurrencia acotada, solicitudes inválidas, permisos API, reglas, adjuntos, flujo completo, invitaciones de equipo, importación y recordatorios.
 - Web release: compilada.
-- Android debug QA: APK compilado.
+- Android debug QA: APK compilado en el nuevo PC; su certificado se registró en Firebase. La firma release del equipo anterior no está disponible localmente.
 - QA desplegado: autenticación, altas mínimas, consultas, búsqueda e indicadores verificados contra Firebase real con una cuenta comercial temporal; datos y cuenta eliminados al finalizar. La auditoría conserva el registro de verificación.
 - iOS: ajustes de interfaz aprobados en [GitHub Actions](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36250981824), sin firma de distribución.
 

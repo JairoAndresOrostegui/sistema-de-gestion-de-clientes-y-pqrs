@@ -31,7 +31,9 @@ En macOS con Xcode: `flutter pub get`, `flutter build ios --no-codesign` para ve
 
 ## Android
 
-`flutter build apk --debug` produce `build/app/outputs/flutter-apk/app-debug.apk` para QA. La huella SHA-1 del certificado debug de este equipo se registró en Firebase. La clave de release/Play App Signing no se configura con una clave inventada; crear una clave propia, registrarla en Firebase y protegerla fuera de Git antes de publicar en Play Store. El build release del scaffold utiliza firma debug hasta configurar la distribución.
+`flutter build apk --debug` produce `build/app/outputs/flutter-apk/app-debug.apk` para QA. Las huellas SHA-1 y SHA-256 del certificado debug de este equipo se registraron en Firebase el 27/09/2026. El APK QA se sirve desde `/downloads/dts-qa-debug.apk`.
+
+La firma release ya existía en el PC anterior, pero `C:/Users/Jairo/.dts-signing/android/dts-upload.jks` no está en este equipo. `android/key.properties` conserva la ruta y debe actualizarse cuando se restaure esa clave desde su copia segura. No generar una clave distinta sin planificar cómo actualizar instalaciones firmadas con la anterior. `flutter build apk --release` y `flutter build appbundle --release` quedan pendientes de esa restauración. Al habilitar Play App Signing, registrar en Firebase también el certificado de firma de Google Play.
 
 ## Operación
 

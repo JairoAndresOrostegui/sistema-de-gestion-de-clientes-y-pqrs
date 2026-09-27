@@ -1,6 +1,8 @@
 import '../core/notifications.dart';
 import 'notification_widgets.dart';
+
 import 'package:flutter/material.dart';
+
 import '../core/api.dart';
 import '../core/theme.dart';
 import '../core/widgets.dart';
@@ -131,32 +133,39 @@ class _AppShellState extends State<AppShell> {
                   .map(
                     (d) => Padding(
                       padding: const EdgeInsets.only(bottom: 3),
-                      child: ListTile(
-                        dense: true,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(9),
-                        ),
-                        selected: page == d.$1,
-                        selectedTileColor: Colors.white.withValues(alpha: .12),
-                        leading: Icon(
-                          d.$3,
-                          size: 20,
-                          color: page == d.$1 ? gold : Colors.white60,
-                        ),
-                        title: Text(
-                          d.$2,
-                          style: TextStyle(
-                            color: page == d.$1 ? Colors.white : Colors.white70,
-                            fontSize: 12,
-                            fontWeight: page == d.$1
-                                ? FontWeight.w700
-                                : FontWeight.w400,
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: ListTile(
+                          dense: true,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(9),
                           ),
+                          selected: page == d.$1,
+                          selectedTileColor: Colors.white.withValues(
+                            alpha: .12,
+                          ),
+                          leading: Icon(
+                            d.$3,
+                            size: 20,
+                            color: page == d.$1 ? gold : Colors.white60,
+                          ),
+                          title: Text(
+                            d.$2,
+                            style: TextStyle(
+                              color: page == d.$1
+                                  ? Colors.white
+                                  : Colors.white70,
+                              fontSize: 12,
+                              fontWeight: page == d.$1
+                                  ? FontWeight.w700
+                                  : FontWeight.w400,
+                            ),
+                          ),
+                          onTap: () {
+                            if (drawer) Navigator.pop(context);
+                            navigate(d.$1);
+                          },
                         ),
-                        onTap: () {
-                          if (drawer) Navigator.pop(context);
-                          navigate(d.$1);
-                        },
                       ),
                     ),
                   )
@@ -628,8 +637,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       if (tickets.isEmpty)
                         EmptyState(
                           title: 'Tu mesa de ayuda está lista',
-                          message:
-                              'Crea tu primera solicitud para iniciar el seguimiento.',
+                          message: 'Crea tu primera solicitud para iniciar el seguimiento.',
                           action: TextButton(
                             onPressed: () => widget.navigate('tickets'),
                             child: const Text('Ir a solicitudes'),

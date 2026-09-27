@@ -46,7 +46,9 @@ La variante release dejó de usar el certificado debug. Gradle lee `android/key.
 
 Se creó una clave RSA de 3072 bits, alias `dts-upload`, válida por 10000 días. Se conserva en `C:\Users\Jairo\.dts-signing\android`, junto a una copia de su configuración. Esa carpeta restringe acceso al usuario actual y SYSTEM. Las contraseñas se generan aleatoriamente y no se imprimen. `scripts/setup-android-signing.cjs` permite preparar otro entorno nuevo y se niega a reemplazar una clave existente.
 
-**Respaldo necesario:** conservar una copia segura y cifrada de esa carpeta. Para compilar en otro equipo, restaurar la clave y crear `android/key.properties` con la ruta local correcta. No enviar claves o contraseñas al repositorio ni junto al APK. Crear otra clave arbitraria impediría actualizar instalaciones firmadas con la anterior.
+**Estado tras copiar a este PC (27/09/2026):** llegó `android/key.properties`, pero no llegó `C:/Users/Jairo/.dts-signing/android/dts-upload.jks`. La compilación release queda bloqueada hasta recuperar la clave original. El APK debug de QA sí compila; las huellas SHA-1/SHA-256 de este PC se registraron en Firebase. Véase la [guía de pruebas físicas](10_Pruebas_fisicas.md).
+
+**Respaldo necesario:** conservar una copia segura y cifrada de esa carpeta. Para compilar en otro equipo, restaurar la clave y ajustar `android/key.properties` a la ruta local correcta. No enviar claves o contraseñas al repositorio ni junto al APK. Crear otra clave arbitraria impediría actualizar instalaciones firmadas con la anterior.
 
 Se registraron las huellas SHA-1 y SHA-256 del certificado en Firebase y se actualizó `google-services.json`, incluido el cliente OAuth Android correspondiente.
 
