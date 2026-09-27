@@ -25,7 +25,7 @@ Actualización: 27 de septiembre de 2026. Plataforma Flutter web, Android e iOS.
 6. **Administración:** búsqueda remota en selectores de más de 100 empresas/proyectos; editor visual de membresías existentes y visor de auditoría/historial. Para más de 30 proyectos específicos usar membresía de empresa o ampliar el modelo.
 7. **Correo y push:** bandeja y push FCM implementados con destinos web/móvil separados, trazabilidad y pruebas reales. Ver `documentacion/08_Validacion.md` y `09_Revision_pendientes.md`. El correo externo sigue pendiente de proveedor; no se afirma que fue enviado.
 8. **Privacidad y operación productiva:** retención automatizada, política de backups con prueba de restauración, monitoreo, App Check, cuarentena/antivirus de adjuntos y revisión de seguridad independiente.
-9. **Distribución móvil:** APK Android QA compilado; firma de distribución propia pendiente. iOS preparado en código, configuración Firebase y callback Google; compilación sin firma aprobada en macOS para los ajustes de interfaz `a8a1839`. Los cambios posteriores se verifican en su ejecución CI. Firma Apple, prueba en dispositivo y publicación en App Store/TestFlight pendientes.
+9. **Distribución móvil:** APK Android QA compilado; firma de distribución propia pendiente. iOS preparado en código, configuración Firebase y callback Google; compilación sin firma aprobada en macOS para `b006562`. Firma Apple, prueba en dispositivo y publicación en App Store/TestFlight pendientes.
 Las invitaciones del propietario también admiten cuentas nuevas comerciales, técnicas y lectoras; nunca permiten reclamar el rol propietario. Las cuentas existentes conservan su rol hasta que el propietario lo modifique explícitamente.
 
 Siguiente incremento recomendado: gestor documental y editor de revisiones de catálogo, seguido por políticas SLA avanzadas y reportes.
@@ -39,7 +39,7 @@ Siguiente incremento recomendado: gestor documental y editor de revisiones de ca
 - Web release: compilada.
 - Android debug QA: APK compilado en el nuevo PC; su certificado se registró en Firebase. La firma release del equipo anterior no está disponible localmente.
 - QA desplegado: autenticación, altas mínimas, consultas, búsqueda e indicadores verificados contra Firebase real con una cuenta comercial temporal; datos y cuenta eliminados al finalizar. La auditoría conserva el registro de verificación.
-- iOS: ajustes de interfaz aprobados en [GitHub Actions](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36250981824), sin firma de distribución.
+- iOS: ajustes de interfaz aprobados en [GitHub Actions](https://github.com/JairoAndresOrostegui/sistema-de-gestion-de-clientes-y-pqrs/actions/runs/36330779655), sin firma de distribución.
 
 El detalle de lo probado, las correcciones y advertencias pendientes está en [QA_AUDIT](QA_AUDIT.md).
 
